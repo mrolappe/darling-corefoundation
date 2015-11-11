@@ -30,6 +30,7 @@
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
 #include <stddef.h>
+#include <stdint.h>
 
 CF_EXTERN_C_BEGIN
 

@@ -62,6 +62,8 @@ CF_EXPORT const CFStringRef kCFRunLoopDefaultMode;
     file descriptors.
  */
 typedef int mach_port_t;
+#else
+#  include <mach/mach_types.h>
 #endif
 
 /** \name Getting the CFRunLoop Type ID
