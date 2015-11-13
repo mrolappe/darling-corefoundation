@@ -38,6 +38,7 @@
 #include "GSMemory.h"
 
 #include <unicode/ucnv.h>
+#include <limits.h>
 
 #define BUFFER_SIZE 512
 
