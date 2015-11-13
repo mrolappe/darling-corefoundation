@@ -27,6 +27,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/Headers)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libobjc2)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../foundation/Headers)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../icu/icuSources/common)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../icu/icuSources/i18n)
 
 set(GS_SINT8_T "signed char")
 set(GS_UINT8_T "unsigned char")
@@ -56,16 +58,16 @@ set(cf_SRCS
 	Source/CFBinaryHeap.c
 	Source/CFBitVector.c
 	Source/CFBundle.m
-	Source/CFCalendar.c # Cannot build until we have ICU
-	Source/CFCharacterSet.c # DITTO
+	Source/CFCalendar.c
+	Source/CFCharacterSet.c
 	Source/CFData.c
-	Source/CFDate.c # DITTO
-	Source/CFDateFormatter.c # DITTO
+	Source/CFDate.c
+	Source/CFDateFormatter.c
 	Source/CFDictionary.c
 	Source/CFError.c
-	Source/CFLocale.c # DITTO
+	Source/CFLocale.c
 	Source/CFNumber.c
-	Source/CFNumberFormatter.c # DITTO
+	Source/CFNumberFormatter.c
 	Source/CFPropertyList.c
 	Source/CFRunLoop.c
 	Source/CFRuntime.c
@@ -101,6 +103,6 @@ set(cf_SRCS
 )
 
 add_library(CoreFoundation SHARED ${cf_SRCS})
-target_link_libraries(CoreFoundation system)
+target_link_libraries(CoreFoundation system icucore)
 
 install(TARGETS CoreFoundation DESTINATION lib${SUFFIX}/darling)
