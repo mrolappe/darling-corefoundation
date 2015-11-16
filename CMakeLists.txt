@@ -102,7 +102,7 @@ set(cf_SRCS
 	Source/NSCFType.m
 )
 
-add_library(CoreFoundation SHARED ${cf_SRCS})
-target_link_libraries(CoreFoundation system icucore)
+add_library(CoreFoundation STATIC ${cf_SRCS})
+#target_link_libraries(CoreFoundation system icucore)
 
-install(TARGETS CoreFoundation DESTINATION lib${SUFFIX}/darling)
+#install(TARGETS CoreFoundation DESTINATION lib${SUFFIX}/darling)
