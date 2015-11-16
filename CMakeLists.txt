@@ -12,7 +12,7 @@ add_definitions(-DHAVE_STDINT_H=1)
 add_definitions(-D__APPLE__ -D__DYNAMIC__)
 add_definitions(-D__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__=1080)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -D__DARWIN_UNIX03 -fPIC -w")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -D__DARWIN_UNIX03 -fPIC -w -fconstant-string-class=NSConstantString -fobjc-nonfragile-abi -ggdb -O0")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -nostdlib -Wl,--version-script=${DARLING_TOP_DIRECTORY}/darwin.map")
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib${SUFFIX}/darling")
@@ -100,9 +100,12 @@ set(cf_SRCS
 	Source/NSCFString.m
 	Source/NSCFTimeZone.m
 	Source/NSCFType.m
+
+	Source/darling/AppleCFString.m
 )
 
 add_library(CoreFoundation STATIC ${cf_SRCS})
+set_source_files_properties(${cf_SRCS} LANGUAGE C)
 #target_link_libraries(CoreFoundation system icucore)
 
 #install(TARGETS CoreFoundation DESTINATION lib${SUFFIX}/darling)
