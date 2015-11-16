@@ -100,11 +100,11 @@ set(cf_SRCS
 	Source/NSCFString.m
 	Source/NSCFTimeZone.m
 	Source/NSCFType.m
-
+	
 	Source/darling/AppleCFString.m
 )
 
-add_library(CoreFoundation STATIC ${cf_SRCS})
+add_library(CoreFoundation OBJECT ${cf_SRCS})
 set_source_files_properties(${cf_SRCS} LANGUAGE C)
 #target_link_libraries(CoreFoundation system icucore)
 
