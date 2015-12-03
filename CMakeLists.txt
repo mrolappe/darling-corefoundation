@@ -24,6 +24,7 @@ SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 add_definitions(-DOBJC2RUNTIME=1)
+add_definitions(-DHAVE_LIBXML2=1)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Headers)
@@ -33,6 +34,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../foundation/Headers)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../icu/icuSources/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../icu/icuSources/i18n)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libxml2/include)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/../libxml2/include)
 
 set(GS_SINT8_T "signed char")
 set(GS_UINT8_T "unsigned char")
