@@ -9,7 +9,7 @@ extern Class* __CFConstantStringClassReference;
 extern Class* __CFConstantStringClassReference  __attribute__ ((weak, alias ("_OBJC_CLASS_AppleCFString")));
 #endif
 
-#if 0
+#if 1
 void __forceAppleCFStringLoad()
 {
 	// The runtime seems to expect at least one instance of AppleCFString to be created
@@ -27,7 +27,7 @@ extern char*** __darwin_environ;
 + (void) load
 {
 	GSInitializeProcess(NXArgc, NXArgv, __darwin_environ);
-	// __forceAppleCFStringLoad();
+	 __forceAppleCFStringLoad();
 }
 
 - (NSUInteger)length
