@@ -416,6 +416,8 @@ void
 GSRuntimeConstantInit (CFTypeRef cf, CFTypeID typeID)
 {
   ((CFRuntimeBase *) cf)->_typeID = typeID;
+  ((CFRuntimeBase *) cf)->_flags.ro = 1;
+  ((CFRuntimeBase *) cf)->_isa = __CFISAForTypeID(typeID);
   GSRuntimeConstantTable[GSRuntimeConstantTableSize++] = cf;
 }
 
