@@ -34,12 +34,17 @@
 #include "CoreFoundation/CFSet.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStream.h"
+#include "CoreFoundation/CFDateFormatter.h"
 #include "CoreFoundation/GSCharacter.h"
 #include "CoreFoundation/GSUnicode.h"
 
 #include "GSPrivate.h"
 #include "GSCArray.h"
 #include "GSMemory.h"
+
+#ifdef HAVE_LIBXML2
+#   include <libxml/parser.h>
+#endif
 
 static CFTypeID _kCFArrayTypeID = 0;
 static CFTypeID _kCFBooleanTypeID = 0;
@@ -1260,10 +1265,295 @@ CFBinaryPlistCreate (CFAllocatorRef alloc, CFDataRef data,
 }
 #endif
 
+#ifdef HAVE_LIBXML2
+static
+CFPropertyListRef CFXMLHandleXMLElement(CFAllocatorRef alloc,
+        xmlNodePtr node, CFPlistString * stream)
+{
+  if (strcmp(node->name, "dict") == 0)
+    {
+      int count = 0, i = 0;
+      Boolean hadKey = 0;
+      xmlNodePtr next;
+      CFDictionaryRef dict = NULL;
+      CFStringRef* keys = NULL;
+      CFTypeRef* values = NULL;
+
+      for (next = node->children; next != node->last; next = next->next)
+        {
+          if (next->type != XML_ELEMENT_NODE)
+              continue;
+          if (strcmp(next->name, "key") == 0)
+            {
+              if (hadKey)
+                {
+                  stream->error = CFPlistCreateError (0, CFSTR ("Multiple <key> without <value>"));
+                  goto dict_out;
+                }
+              hadKey = 1;
+            }
+          else
+            {
+              if (!hadKey)
+                {
+                  stream->error = CFPlistCreateError (0, CFSTR ("<value> without preceding <key>"));
+                  goto dict_out;
+                }
+              hadKey = 0;
+              count++;
+            }
+        }
+
+      if (hadKey)
+        {
+          stream->error = CFPlistCreateError (0, CFSTR ("<key> without <value>"));
+          goto dict_out;
+        }
+
+      keys = (CFStringRef*) calloc(count, sizeof(CFStringRef));
+      values = (CFTypeRef*) calloc(count, sizeof(CFTypeRef));
+
+      for (next = node->children; next != node->last; next = next->next)
+        {
+          if (next->type != XML_ELEMENT_NODE)
+              continue;
+          if (strcmp(next->name, "key") == 0)
+            {
+              xmlChar* content = xmlNodeGetContent(next);
+              keys[i] = CFStringCreateWithCString(alloc, content,
+                      kCFStringEncodingUTF8);
+              xmlFree(content);
+            }
+          else
+            {
+              values[i] = CFXMLHandleXMLElement(alloc, next, stream);
+              if (values[i] == NULL)
+                  goto dict_out;
+              i++;
+            }
+        }
+
+      dict = CFDictionaryCreate(alloc, (void**) keys, (void**) values,
+              count, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+
+      if (stream->options == kCFPropertyListMutableContainersAndLeaves
+              || stream->options == kCFPropertyListMutableContainers)
+        {
+          CFMutableDictionaryRef mut;
+
+          mut = CFDictionaryCreateMutableCopy(alloc, dict, 0);
+
+          CFRelease(dict);
+          dict = (CFDictionaryRef) mut;
+        }
+
+dict_out:
+
+      if (keys != NULL)
+        {
+          for (i = 0; i < count; i++)
+              CFRelease(keys[i]);
+          free(keys);
+        }
+      if (values != NULL)
+        {
+          for (i = 0; i < count; i++)
+              CFRelease(values[i]);
+          free(values);
+        }
+      
+      return dict;
+    }
+  else if (strcmp(node->name, "string") == 0)
+    {
+      CFStringRef str;
+      xmlChar* content;
+
+      content = xmlNodeGetContent(node);
+      str = CFStringCreateWithCString(alloc, content,
+                  kCFStringEncodingUTF8);
+
+      xmlFree(content);
+
+      if (stream->options == kCFPropertyListMutableContainersAndLeaves)
+        {
+          CFMutableStringRef mut;
+
+          mut = CFStringCreateMutableCopy(alloc, 0, str);
+          CFRelease(str);
+
+          return mut;
+        }
+      else
+        {
+          return str;
+        }
+    }
+  else if (strcmp(node->name, "real") == 0)
+    {
+      Float64 num;
+      char* end;
+      xmlChar* content;
+
+      content = xmlNodeGetContent(node);
+      num = strtod(content, &end);
+      xmlFree(content);
+
+      return CFNumberCreate(alloc, kCFNumberFloat64Type, &num);
+    }
+  else if( strcmp(node->name, "integer") == 0)
+    {
+      SInt64 num;
+      char* end;
+      xmlChar* content;
+
+      content = xmlNodeGetContent(node);
+      num = strtoll(content, &end, 10);
+      xmlFree(content);
+
+      return CFNumberCreate(alloc, kCFNumberSInt64Type, &num);
+    }
+  else if (strcmp(node->name, "true") == 0)
+    {
+      return kCFBooleanTrue;
+    }
+  else if (strcmp(node->name, "false") == 0)
+    {
+      return kCFBooleanFalse;
+    }
+  else if (strcmp(node->name, "date") == 0)
+    {
+      CFDateFormatterRef fmt;
+      CFStringRef format = CFSTR("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+      CFDateRef date;
+      CFStringRef str;
+      xmlChar* content;
+
+      fmt = CFDateFormatterCreate(alloc, NULL, kCFDateFormatterLongStyle,
+              kCFDateFormatterLongStyle);
+
+      CFDateFormatterSetFormat(fmt, format);
+
+      content = xmlNodeGetContent(node);
+      str = CFStringCreateWithCString(alloc, content,
+              kCFStringEncodingUTF8);
+      xmlFree(content);
+
+      date = CFDateFormatterCreateDateFromString(alloc, fmt, str, NULL);
+
+      CFRelease(fmt);
+      CFRelease(str);
+
+      return date;
+    }
+  else if (strcmp(node->name, "data") == 0)
+    {
+      // TODO: base64 decoding...
+    }
+  else if (strcmp(node->name, "array") == 0)
+    {
+      int count = 0, i = 0;
+      xmlNodePtr next;
+      CFArrayRef array = NULL;
+      CFTypeRef* values;
+
+      for (next = node->children; next != node->last; next = next->next)
+        {
+          if (next->type == XML_ELEMENT_NODE)
+              count++;
+        }
+
+      values = (CFTypeRef*) calloc(count, sizeof(CFTypeRef));
+      for (next = node->children; next != node->last; next = next->next)
+        {
+          CFTypeRef obj;
+
+          if (next->type != XML_ELEMENT_NODE)
+              continue;
+          
+          obj = CFXMLHandleXMLElement(alloc, next, stream);
+          if (obj == NULL)
+              goto array_out;
+
+          values[i++] = obj;
+        }
+
+      array = CFArrayCreate(alloc, (const void **) values, count,
+              &kCFTypeArrayCallBacks);
+      if (stream->options == kCFPropertyListMutableContainersAndLeaves
+              || stream->options == kCFPropertyListMutableContainers)
+        {
+          CFMutableArrayRef mut;
+
+          mut = CFArrayCreateMutableCopy(alloc, 0, array);
+          CFRelease(array);
+
+          array = (CFArrayRef) mut;
+        }
+array_out:
+      while (count > 0)
+        {
+          CFRelease(values[count-1]);
+          count--;
+        }
+
+      free(values);
+      return array;
+    }
+  else
+    {
+      stream->error = CFPlistCreateError (0, CFSTR ("Unknown element"));
+      return NULL;
+    }
+}
+#endif
+
 static CFPropertyListRef
 CFXMLPlistCreate (CFAllocatorRef alloc, CFPlistString * stream)
 {
+#ifndef HAVE_LIBXML2
   return NULL;
+#else
+  xmlDocPtr doc;
+  xmlNodePtr root, node, rootElem = NULL;
+  CFPropertyListRef ret = NULL;
+
+  doc = xmlParseMemory(stream->buffer,
+          (stream->limit - stream->buffer) * sizeof(UniChar));
+
+  if (doc == NULL)
+    {
+      stream->error = CFPlistCreateError (0, CFSTR ("Invalid XML document"));
+      goto out;
+    }
+
+  root = xmlDocGetRootElement(doc);
+  if (strcmp(root->name, "plist") != 0)
+    {
+      stream->error = CFPlistCreateError (0, CFSTR ("Not a PLIST"));
+      goto out;
+    }
+
+  for (node = root->children; node != root->last; node = node->next)
+    {
+      if (node->type != XML_ELEMENT_NODE)
+          continue;
+      if (rootElem != NULL)
+        {
+          stream->error = CFPlistCreateError (0, CFSTR ("Multiple root elements"));
+          goto out;
+        }
+
+      rootElem = node;
+    }
+
+  ret = CFXMLHandleXMLElement(alloc, rootElem, stream);
+
+out:
+  if (doc != NULL)
+      xmlFreeDoc(doc);
+  return ret;
+#endif
 }
 
 static const UInt8 _kCFBinaryPlistHeader[] = "bplist00";
