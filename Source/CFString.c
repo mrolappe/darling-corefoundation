@@ -882,6 +882,24 @@ CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
   void *contents;
   CFIndex len;
   CFStringEncoding enc;
+  UniChar* chars;
+  int isAllocd;
+  CFStringRef new;
+
+  chars = CFStringGetCharactersPtr(str);
+
+  if (!chars)
+    {
+      chars = (UniChar*) CFAllocatorAllocate(alloc,
+              range.length * sizeof(UniChar), 0);
+      CFStringGetCharacters(str, range, chars);
+      isAllocd = 1;
+    }
+  else
+    {
+      chars += range.location;
+      isAllocd = 0;
+    }
 
   if (CFStringIsUnicode (str))
     {
@@ -896,8 +914,13 @@ CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
       contents = ((char *) str->_contents) + range.location;
     }
 
-  return CFStringCreateWithBytes (alloc, (const UInt8 *) contents, len, enc,
-                                  false);
+  new = CFStringCreateWithBytes (alloc, (const UInt8 *) chars,
+          range.length * sizeof (UniChar), kCFStringEncodingUnicode,
+          false);
+
+  if (isAllocd)
+     CFAllocatorDeallocate(alloc, chars);
+  return new;
 }
 
 CFDataRef
