@@ -1107,20 +1107,21 @@ CFURLCopyFileSystemPath (CFURLRef url, CFURLPathStyle style)
   CFStringRef urlStr;
   CFStringRef path;
   CFAllocatorRef alloc;
-  CFRange r;
-  
-  r = url->_ranges[kCFURLComponentPath - 1];
-  if (r.location == kCFNotFound)
-    return NULL;
   
   alloc = CFGetAllocator(url);
-  urlStr = url->_urlString;
+  urlStr = CFURLCopyPath(url);
+  if (!urlStr)
+      return NULL;
   
-  if (r.length > 1)
+  if (CFStringGetLength(urlStr) > 1)
     {
       CFStringRef tmp;
+	  CFRange r;
+
+      r.location = 0;
+      r.length = CFStringGetLength(urlStr);
       
-      if (CFStringGetCharacterAtIndex(urlStr, r.location + r.length - 1) == '/')
+      if (CFStringGetCharacterAtIndex(urlStr, r.length - 1) == '/')
         r.length -= 1;
       tmp = CFStringCreateWithSubstring (alloc, urlStr, r);
       path = CFURLCreateStringByReplacingPercentEscapesUsingEncoding (alloc,
@@ -1131,6 +1132,7 @@ CFURLCopyFileSystemPath (CFURLRef url, CFURLPathStyle style)
     {
       path = CFSTR("/");
     }
+  CFRelease(urlStr);
   
   switch (style)
     {
@@ -1177,6 +1179,8 @@ CFURLCopyFragment (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 CFStringRef
 CFURLCopyHostName (CFURLRef url)
 {
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFURLTypeID, CFStringRef, url, "host");
+
   CFRange range = url->_ranges[kCFURLComponentHost - 1];
   if (range.location == kCFNotFound)
     {
@@ -1197,6 +1201,47 @@ CFURLCopyLastPathComponent (CFURLRef url)
 CFStringRef
 CFURLCopyNetLocation (CFURLRef url)
 {
+  if (CF_IS_OBJC(_kCFURLTypeID, url))
+    {
+      CFStringRef comp;
+
+      comp = CFURLCopyUserName(url);
+
+      if (comp != NULL)
+        {
+          CFMutableStringRef mut;
+          CFStringRef str;
+
+          mut = CFStringCreateMutable(CFGetAllocator(url), 0);
+
+          CFStringAppend(mut, comp);
+          CFRelease(comp);
+
+          comp = CFURLCopyPassword(url);
+          if (comp != NULL)
+            {
+              CFStringAppend(mut, CFSTR(":"));
+              CFStringAppend(mut, comp);
+              CFRelease(comp);
+            }
+
+          CFStringAppend(mut, CFSTR("@"));
+          
+          comp = CFURLCopyHostName(url);
+          CFStringAppend(mut, comp);
+          CFRelease(comp);
+
+          str = CFStringCreateCopy(CFGetAllocator(url), mut);
+          CFRelease(mut);
+
+          return str;
+        }
+      else
+        {
+          return CFURLCopyHostName(url);
+        }
+    }
+
   CFRange range = url->_ranges[kCFURLComponentNetLocation - 1];
   if (range.location == kCFNotFound)
     {
@@ -1211,6 +1256,9 @@ CFURLCopyNetLocation (CFURLRef url)
 CFStringRef
 CFURLCopyParameterString (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 {
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFURLTypeID, CFStringRef, url,
+          "parameterString");
+
   CFRange range = url->_ranges[kCFURLComponentParameterString - 1];
   if (range.location == kCFNotFound)
     return NULL;
@@ -1222,6 +1270,8 @@ CFURLCopyParameterString (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 CFStringRef
 CFURLCopyPassword (CFURLRef url)
 {
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFURLTypeID, CFStringRef, url, "password");
+
   CFRange range = url->_ranges[kCFURLComponentPassword - 1];
   if (range.location == kCFNotFound)
     {
@@ -1236,6 +1286,8 @@ CFURLCopyPassword (CFURLRef url)
 CFStringRef
 CFURLCopyPath (CFURLRef url)
 {
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFURLTypeID, CFStringRef, url, "path");
+
   CFRange range = url->_ranges[kCFURLComponentPath - 1];
   if (range.location == kCFNotFound)
     {
@@ -1256,6 +1308,8 @@ CFURLCopyPathExtension (CFURLRef url)
 CFStringRef
 CFURLCopyQueryString (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 {
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFURLTypeID, CFStringRef, url, "query");
+
     CFRange range = url->_ranges[kCFURLComponentQuery - 1];
   if (range.location == kCFNotFound)
     {
@@ -1270,6 +1324,9 @@ CFURLCopyQueryString (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 CFStringRef
 CFURLCopyResourceSpecifier (CFURLRef url)
 {
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFURLTypeID, CFStringRef, url,
+          "resourceSpecifier");
+
   CFRange range = url->_ranges[kCFURLComponentResourceSpecifier - 1];
   if (range.location == kCFNotFound)
     return NULL;
@@ -1281,6 +1338,8 @@ CFURLCopyResourceSpecifier (CFURLRef url)
 CFStringRef
 CFURLCopyScheme (CFURLRef url)
 {
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFURLTypeID, CFStringRef, url, "scheme");
+
   CFRange range = url->_ranges[kCFURLComponentScheme - 1];
   if (range.location == kCFNotFound)
     {
@@ -1321,6 +1380,8 @@ CFURLCopyStrictPath (CFURLRef url, Boolean *isAbsolute)
 CFStringRef
 CFURLCopyUserName (CFURLRef url)
 {
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFURLTypeID, CFStringRef, url, "user");
+
   CFRange range = url->_ranges[kCFURLComponentUser - 1];
   if (range.location == kCFNotFound)
     {
