@@ -1,6 +1,7 @@
 /* CFPropertyList.c
    
    Copyright (C) 2012 Free Software Foundation, Inc.
+   Copyright (C) 2015 Lubos Dolezel
    
    Written by: Stefan Bidigaray
    Date: August, 2012
@@ -44,6 +45,22 @@
 
 #ifdef HAVE_LIBXML2
 #   include <libxml/parser.h>
+#endif
+#if defined(__APPLE__)
+#  include <libkern/OSByteOrder.h>
+#  ifdef __LITTLE_ENDIAN__
+#    define NEEDS_BYTESWAP
+#  endif
+#elif defined(__FreeBSD__)
+#  include <sys/endian.h>
+#  if BYTE_ORDER == BIG_ENDIAN
+#    define NEEDS_BYTESWAP
+#  endif
+#elif defined(__linux__)
+#  include <endian.h>
+#  if __BYTE_ORDER == __BIG_ENDIAN
+#    define NEEDS_BYTESWAP
+#  endif
 #endif
 
 static CFTypeID _kCFArrayTypeID = 0;
@@ -863,6 +880,7 @@ static void
 CFPlistWriteStreamWrite (CFPlistWriteStream * stream, const UInt8 * buf,
                          CFIndex len)
 {
+  stream->written += len;
   do
     {
       CFIndex writeLen;
@@ -1256,14 +1274,336 @@ CFOpenStepPlistWriteObject (CFPropertyListRef plist,
     }
 }
 
-#if 0
+static UInt16 _Read16BE(const UInt8* ptr)
+{
+  UInt16 i16 = *(const UInt16*) ptr;
+#ifdef NEEDS_BYTESWAP
+  i16 = __builtin_bswap16(i16);
+#endif
+  return i16;
+}
+
+static UInt32 _Read32BE(const UInt8* ptr)
+{
+  UInt32 i32 = *(const UInt32*) ptr;
+#ifdef NEEDS_BYTESWAP
+  i32 = __builtin_bswap32(i32);
+#endif
+  return i32;
+}
+
+static UInt64 _Read64BE(const UInt8* ptr)
+{
+  UInt64 i64 = *(const UInt64*) ptr;
+#ifdef NEEDS_BYTESWAP
+  i64 = __builtin_bswap64(i64);
+#endif
+  return i64;
+}
+
+static Float32 _ReadF32BE(const UInt8* ptr)
+{
+  UInt32 i32 = _Read32BE(ptr);
+  return *(Float32*) &i32;
+}
+
+static Float64 _ReadF64BE(const UInt8* ptr)
+{
+  UInt64 i64 = _Read64BE(ptr);
+  return *(Float64*) &i64;
+}
+
+static int* _ReadInts(const UInt8* ptr, int numObjects, int size,
+        const UInt8** pptr)
+{
+  int* array = (int*) malloc(sizeof(int) * numObjects);
+  int i;
+  
+  for (i = 0; i < numObjects; i++)
+    {
+      if (size == 1)
+          array[i] = *ptr++;
+      else if (size == 2)
+        {
+          array[i] = _Read16BE(ptr);
+          ptr += 2;
+        }
+      else if (size == 4)
+        {
+          array[i] = _Read32BE(ptr);
+          ptr += 4;
+        }
+      else if (size == 8)
+        {
+          array[i] = _Read64BE(ptr);
+          ptr += 8;
+        }
+      else
+        {
+          free(array);
+          return NULL;
+        }
+    }
+
+  if (pptr != NULL)
+    *pptr = ptr;
+
+  return array;
+}
+
+static CFNumberRef
+_ReadCFNumber(CFAllocatorRef alloc, const UInt8 *ptr, int size)
+{
+  if (size == 1)
+    {
+      SInt8 i8 = *ptr;
+      return CFNumberCreate(alloc, kCFNumberSInt8Type, &i8);
+    }
+  else if (size == 2)
+    {
+      SInt16 i16 = _Read16BE(ptr);
+      return CFNumberCreate(alloc, kCFNumberSInt16Type, &i16);
+    }
+  else if (size == 4)
+    {
+      SInt32 i32 = _Read32BE(ptr);
+      return CFNumberCreate(alloc, kCFNumberSInt32Type, &i32);
+    }
+  else if (size == 8)
+    {
+      SInt64 i64 = _Read64BE(ptr);
+      return CFNumberCreate(alloc, kCFNumberSInt64Type, &i64);
+    }
+  else
+    return NULL;
+}
+
+static CFNumberRef
+_ReadCFNumberF(CFAllocatorRef alloc, const UInt8 *ptr, int size)
+{
+  if (size == 4)
+    {
+      Float32 f32 = _ReadF32BE(ptr);
+      return CFNumberCreate(alloc, kCFNumberFloat32Type, &f32);
+    }
+  else if (size == 8)
+    {
+      Float64 f64 = _ReadF64BE(ptr);
+      return CFNumberCreate(alloc, kCFNumberFloat64Type, &f64);
+    }
+  else
+    return NULL;
+}
+
+static UInt8*
+_ReadLength(const UInt8 *ptr, int lo, int* length)
+{
+  if (lo < 0xf)
+    {
+      *length = lo;
+    }
+  else
+    {
+      int type = 1 << (*ptr++ & 0x3);
+      if (type == 1)
+        {
+          *length = *ptr++;
+        }
+      else if (type == 2)
+        {
+          *length = _Read16BE(ptr);
+          ptr += 2;
+        }
+      else if (type == 4)
+        {
+          *length = _Read32BE(ptr);
+          ptr += 4;
+        }
+      else if (type == 8)
+        {
+          *length = _Read64BE(ptr);
+          ptr += 8;
+        }
+    }
+  return ptr;
+}
+
+static CFPropertyListRef
+_BPlistReadObject(CFAllocatorRef alloc, const UInt8 *bytes,
+        int* objectOffsets, int offset, int refSize)
+{
+  int token, lo, hi;
+
+  token = bytes[offset++];
+  lo = token & 0xf;
+  hi = token >> 4;
+
+  switch (hi)
+  {
+    case 0: // null / pad / boolean
+      if (lo == 0 || lo == 0xf)
+        return NULL;
+      else if (lo == 8)
+        return kCFBooleanFalse;
+      else if (lo == 9)
+        return kCFBooleanTrue;
+      else
+        return NULL; // invalid
+
+    case 1: // int
+      return _ReadCFNumber(alloc, bytes + offset, 1 << lo);
+
+    case 2: // real
+      return _ReadCFNumberF(alloc, bytes + offset, 1 << lo);
+
+    case 3: // date
+      {
+        CFAbsoluteTime at;
+        at = _ReadF64BE(bytes + offset);
+        return CFDateCreate(alloc, at);
+      }
+
+    case 4: // data
+    case 5: // ASCII string
+    case 6: // Unicode string
+    case 8: // UID
+      {
+        const UInt8* ptr;
+        int length;
+
+        ptr = _ReadLength(bytes + offset, lo, &length);
+
+        if (hi == 5)
+          {
+            return CFStringCreateWithBytes(alloc, ptr, length,
+                    kCFStringEncodingUTF8, 0);
+          }
+        else if (hi == 6)
+          {
+            return CFStringCreateWithBytes(alloc, ptr, length,
+                    kCFStringEncodingUTF16BE, 0);
+          }
+        else
+          {
+            return CFDataCreate(alloc, ptr, length);
+          }
+      }
+
+    case 10: // array
+    case 12: // set
+      {
+        const UInt8* ptr;
+        int length, i;
+        CFTypeRef* elems;
+        int* elem_idx;
+        CFPropertyListRef rv;
+
+        ptr = _ReadLength(bytes + offset, lo, &length);
+        elems = (CFTypeRef*) malloc(length * sizeof(CFTypeRef));
+        elem_idx = _ReadInts(ptr, length, refSize, NULL);
+
+        for (i = 0; i < length; i++)
+          {
+            elems[i] = _BPlistReadObject(alloc, bytes, objectOffsets,
+                    objectOffsets[elem_idx[i]], refSize);
+          }
+
+        free(elem_idx);
+
+        if (hi == 10)
+          {
+            rv = CFArrayCreate(alloc, elems, length, &kCFTypeArrayCallBacks);
+          }
+        else
+          {
+            rv = CFSetCreate(alloc, elems, length, &kCFTypeSetCallBacks);
+          }
+
+        for (i = 0; i < length; i++)
+          CFRelease(elems[i]);
+
+        free(elems);
+        return rv;
+      }
+
+    case 13: // map
+      {
+        const UInt8* ptr;
+        int length, i;
+        CFTypeRef *keys, *values;
+        int *key_idx, *value_idx;
+        CFDictionaryRef rv;
+
+        ptr = _ReadLength(bytes + offset, lo, &length);
+        keys = (CFTypeRef*) malloc(length * sizeof(CFTypeRef));
+        values = (CFTypeRef*) malloc(length * sizeof(CFTypeRef));
+
+        key_idx = _ReadInts(ptr, length, refSize, &ptr);
+        value_idx = _ReadInts(ptr, length, refSize, NULL);
+
+        for (i = 0; i < length; i++)
+          {
+            keys[i] = _BPlistReadObject(alloc, bytes, objectOffsets,
+                    objectOffsets[key_idx[i]], refSize);
+            values[i] = _BPlistReadObject(alloc, bytes, objectOffsets,
+                    objectOffsets[value_idx[i]], refSize);
+          }
+
+        free(key_idx);
+        free(value_idx);
+
+        rv = CFDictionaryCreate(alloc, keys, values, length,
+                &kCFTypeDictionaryKeyCallBacks,
+                &kCFTypeDictionaryValueCallBacks);
+
+        for (i = 0; i < length; i++)
+          {
+            CFRelease(keys[i]);
+            CFRelease(values[i]);
+          }
+
+        free(keys);
+        free(values);
+
+        return rv;
+      }
+
+    default:
+      return NULL;
+  }
+}
+
 static CFPropertyListRef
 CFBinaryPlistCreate (CFAllocatorRef alloc, CFDataRef data,
                      CFOptionFlags opts, CFErrorRef * err)
 {
-  return NULL;
+  CFIndex dataLen;
+  const UInt8 *bytes, *pos;
+  int offsetSize, numObjects, topObject, offsetTableOffset, refSize;
+  int* objectOffsets;
+  CFPropertyListRef oplist;
+	
+  bytes = CFDataGetBytePtr (data);
+  dataLen = CFDataGetLength (data);
+  
+  pos = bytes + dataLen - 32 + 6;
+  offsetSize = *pos++;
+  refSize = *pos++;
+  numObjects = _Read64BE(pos); pos += 8;
+  topObject = _Read64BE(pos); pos += 8;
+  offsetTableOffset = _Read64BE(pos); pos += 8;
+  
+  objectOffsets = _ReadInts(bytes + offsetTableOffset, numObjects,
+      offsetSize, NULL);
+  if (objectOffsets == NULL)
+    return NULL;
+
+  oplist = _BPlistReadObject(alloc, bytes, objectOffsets,
+          objectOffsets[topObject], refSize);
+  
+  free(objectOffsets);
+  return oplist;
 }
-#endif
 
 #ifdef HAVE_LIBXML2
 static
@@ -1561,8 +1901,506 @@ static const CFIndex _kCFBinaryPlistHeaderLength =
   sizeof (_kCFBinaryPlistHeader) - 1;
 
 static void
+_Write8(CFPlistWriteStream* stream, UInt8 v)
+{
+  CFPlistWriteStreamWrite(stream, &v, sizeof(v));
+}
+
+static void
+_Write16BE(CFPlistWriteStream* stream, UInt16 v)
+{
+#ifdef NEEDS_BYTESWAP
+  v = __builtin_bswap16(v);
+#endif
+  CFPlistWriteStreamWrite(stream, (UInt8*) &v, sizeof(v));
+}
+
+static void
+_Write32BE(CFPlistWriteStream* stream, UInt32 v)
+{
+#ifdef NEEDS_BYTESWAP
+  v = __builtin_bswap32(v);
+#endif
+  CFPlistWriteStreamWrite(stream, (UInt8*) &v, sizeof(v));
+}
+
+static void
+_Write64BE(CFPlistWriteStream* stream, UInt64 v)
+{
+#ifdef NEEDS_BYTESWAP
+  v = __builtin_bswap64(v);
+#endif
+  CFPlistWriteStreamWrite(stream, (UInt8*) &v, sizeof(v));
+}
+
+static void
+_WriteF32BE(CFPlistWriteStream* stream, Float32 v)
+{
+  UInt32 u;
+  u = *(UInt32*) &v;
+
+  _Write32BE(stream, u);
+}
+
+static void
+_WriteF64BE(CFPlistWriteStream* stream, Float64 v)
+{
+  UInt64 u;
+  u = *(UInt64*) &v;
+
+  _Write64BE(stream, u);
+}
+
+static void
+_WriteTypeAndLength(CFPlistWriteStream* stream, UInt8 type, CFIndex length)
+{
+  if (length < 15)
+    type |= length;
+  else
+    type |= 0xf;
+
+  CFPlistWriteStreamWrite(stream, &type, sizeof(type));
+
+  if (length >= 15)
+    {
+      UInt8 llen;
+      if (length > 65535)
+        {
+          UInt32 v = length;
+          llen = 2;
+          CFPlistWriteStreamWrite(stream, (UInt8*) &llen, sizeof(llen));
+
+          _Write32BE(stream, v);
+        }
+      else if (length > 255)
+        {
+          UInt16 v = length;
+          llen = 1;
+          CFPlistWriteStreamWrite(stream, (UInt8*) &llen, sizeof(llen));
+
+          _Write16BE(stream, v);
+        }
+      else
+        {
+          UInt8 v = length;
+          llen = 0;
+          CFPlistWriteStreamWrite(stream, (UInt8*) &llen, sizeof(llen));
+          _Write8(stream, v);
+        }
+    }
+}
+
+static void
+_WriteRef(CFPlistWriteStream* stream, int refSize, CFIndex ref)
+{
+  if (refSize == 1)
+    {
+      UInt8 v = ref;
+      _Write8(stream, v);
+    }
+  else
+    {
+      UInt16 v = ref;
+      _Write16BE(stream, v);
+    }
+}
+
+static CFIndex
+CFPlistGetObjectCount(CFPropertyListRef plist)
+{
+  CFTypeID typeID;
+  CFIndex rv;
+
+  if (plist != NULL)
+    typeID = CFGetTypeID (plist);
+  else
+    return 1;
+
+  if (typeID == CFArrayGetTypeID () || typeID == CFSetGetTypeID ())
+    {
+      const CFTypeRef* values;
+      CFIndex length, i;
+      Boolean isArray = typeID == CFArrayGetTypeID();
+      CFIndex count = 1;
+
+      if (isArray)
+        length = CFArrayGetCount((CFArrayRef) plist);
+      else
+        length = CFSetGetCount((CFSetRef) plist);
+
+      values = (const CFTypeRef*) malloc(length * sizeof(CFTypeRef));
+
+      if (isArray)
+        CFArrayGetValues((CFArrayRef) plist, CFRangeMake(0, length), (const void**) values);
+      else
+        CFSetGetValues((CFSetRef) plist, (const void**) values);
+
+      for (i = 0; i < length; i++)
+        count += CFPlistGetObjectCount(values[i]);
+
+      free(values);
+      return count;
+    }
+  else if (typeID == CFBooleanGetTypeID ()
+          || typeID == CFDataGetTypeID ()
+          || typeID == CFDateGetTypeID ()
+          || typeID == CFNumberGetTypeID ()
+          || typeID == CFStringGetTypeID ())
+    {
+      return 1;
+    }
+  else if (typeID == CFDictionaryGetTypeID ())
+    {
+      const CFTypeRef *values, *keys;
+      CFIndex length, i, count = 1;
+      CFDictionaryRef dict = (CFDictionaryRef) plist;
+
+      length = CFDictionaryGetCount(dict);
+
+      values = (CFTypeRef*) malloc(length * sizeof(CFTypeRef));
+      keys = (CFTypeRef*) malloc(length * sizeof(CFTypeRef));
+
+      CFDictionaryGetKeysAndValues(dict, keys, values);
+
+      for (i = 0; i < length; i++)
+        count += CFPlistGetObjectCount(keys[i]);
+
+      for (i = 0; i < length; i++)
+        count += CFPlistGetObjectCount(values[i]);
+
+      free(keys);
+      free(values);
+
+      return count;
+    }
+  else
+    return 0;
+}
+
+static CFIndex
+CFBinaryPlistWriteObject(CFPropertyListRef plist, CFPlistWriteStream * stream,
+        CFMutableArrayRef offsetTable, int refSize)
+{
+  CFTypeID typeID;
+  CFIndex rv;
+
+  if (plist != NULL)
+    typeID = CFGetTypeID (plist);
+  if (plist == NULL)
+    {
+      _Write8(stream, 0);
+      rv = stream->written-1;
+    }
+  if (typeID == CFArrayGetTypeID () || typeID == CFSetGetTypeID ())
+    {
+      const CFTypeRef* values;
+      CFIndex length, i, offset;
+      Boolean isArray = typeID == CFArrayGetTypeID();
+      UInt8 type;
+
+      if (isArray)
+        {
+          length = CFArrayGetCount((CFArrayRef) plist);
+          type = 10 << 4;
+        }
+      else
+        {
+          length = CFSetGetCount((CFSetRef) plist);
+          type = 12 << 4;
+        }
+
+      values = (const CFTypeRef*) malloc(length * sizeof(CFTypeRef));
+
+      if (isArray)
+        CFArrayGetValues((CFArrayRef) plist, CFRangeMake(0, length), (const void**) values);
+      else
+        CFSetGetValues((CFSetRef) plist, (const void**) values);
+
+      for (i = 0; i < length; i++)
+        {
+          offset = CFBinaryPlistWriteObject(values[i], stream, offsetTable, refSize);
+          CFArrayAppendValue(offsetTable, (void*) offset);
+        }
+
+      free(values);
+
+      rv = stream->written;
+      _WriteTypeAndLength(stream, type, length);
+
+      // variable reuse!
+      offset = CFArrayGetCount(offsetTable);
+      for (i = offset - length; i < offset; i++)
+          _WriteRef(stream, refSize, i);
+    }
+  else if (typeID == CFBooleanGetTypeID ())  
+    {
+      UInt8 v;
+
+      rv = stream->written;
+      if (plist == kCFBooleanFalse)
+        v = 8;
+      else
+        v = 9;
+
+      CFPlistWriteStreamWrite(stream, &v, sizeof(v));
+    }
+  else if (typeID == CFDataGetTypeID ())
+    {
+      CFDataRef data = (CFDataRef) plist;
+      CFIndex length = CFDataGetLength(data);
+
+      rv = stream->written;
+      _WriteTypeAndLength(stream, 4 << 4, length);
+      CFPlistWriteStreamWrite(stream, CFDataGetBytePtr(data), length);
+    }
+  else if (typeID == CFDateGetTypeID ())
+    {
+      CFAbsoluteTime at;
+
+      at = CFDateGetAbsoluteTime((CFDateRef) plist);
+      rv = stream->written;
+
+      _Write8(stream, 3 << 4);
+      _WriteF64BE(stream, at);
+    }
+  else if (typeID == CFDictionaryGetTypeID ())
+    {
+      const CFTypeRef *values, *keys;
+      CFIndex count, i, offset;
+      CFDictionaryRef dict = (CFDictionaryRef) plist;
+
+      count = CFDictionaryGetCount(dict);
+
+      values = (CFTypeRef*) malloc(count * sizeof(CFTypeRef));
+      keys = (CFTypeRef*) malloc(count * sizeof(CFTypeRef));
+
+      CFDictionaryGetKeysAndValues(dict, keys, values);
+
+      for (i = 0; i < count; i++)
+        {
+          offset = CFBinaryPlistWriteObject(keys[i], stream,
+                  offsetTable, refSize);
+          CFArrayAppendValue(offsetTable, (void*) offset);
+        }
+      for (i = 0; i < count; i++)
+        {
+          offset = CFBinaryPlistWriteObject(values[i],
+                  stream, offsetTable, refSize);
+          CFArrayAppendValue(offsetTable, (void*) offset);
+        }
+
+      free(keys);
+      free(values);
+
+      rv = stream->written;
+      _WriteTypeAndLength(stream, 13 << 4, count);
+
+      // variable reuse!
+      offset = CFArrayGetCount(offsetTable);
+      for (i = offset - count*2; i < offset; i++)
+          _WriteRef(stream, refSize, i);
+    }
+  else if (typeID == CFNumberGetTypeID ())
+    {
+      CFNumberRef num = (CFNumberRef) plist;
+      UInt8 type;
+
+      rv = stream->written;
+
+      if (CFNumberIsFloatType(num))
+        {
+          type = 2 << 4;
+          if (CFNumberGetByteSize(num) == 4)
+            {
+              Float32 f32;
+
+              type |= 2;
+              CFPlistWriteStreamWrite(stream, &type, 1);
+              CFNumberGetValue(num, kCFNumberFloat32Type, &f32);
+
+              _WriteF32BE(stream, f32);
+            }
+          else
+            {
+              Float64 f64;
+
+              type |= 3;
+              CFPlistWriteStreamWrite(stream, &type, 1);
+              CFNumberGetValue(num, kCFNumberFloat64Type, &f64);
+
+              _WriteF64BE(stream, f64);
+            }
+        }
+      else
+        {
+          type = 1 << 4;
+          CFPlistWriteStreamWrite( stream, &type, 1);
+
+          switch (CFNumberGetByteSize(num))
+          {
+            case 1:
+              {
+                UInt8 v;
+
+                type |= 0;
+                CFNumberGetValue(num, kCFNumberSInt8Type, &v);
+                CFPlistWriteStreamWrite(stream, &v, sizeof(v));
+
+                break;
+              }
+            case 2:
+              {
+                UInt16 v;
+
+                type |= 1;
+                CFNumberGetValue(num, kCFNumberSInt16Type, &v);
+                _Write16BE(stream, v);
+
+                break;
+              }
+            case 4:
+              {
+                UInt32 v;
+
+                type |= 2;
+                CFNumberGetValue(num, kCFNumberSInt32Type, &v);
+                _Write32BE(stream, v);
+
+                break;
+              }
+            case 8:
+              {
+                UInt64 v;
+
+                type |= 3;
+                CFNumberGetValue(num, kCFNumberSInt64Type, &v);
+                _Write64BE(stream, v);
+
+                break;
+              }
+          }
+        }
+    }
+  else if (typeID == CFStringGetTypeID ())
+    {
+      CFStringRef str = (CFStringRef) plist;
+      const char* ptr;
+      const UniChar* uptr;
+      CFIndex length = CFStringGetLength(str);
+
+      ptr = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
+      uptr = CFStringGetCharactersPtr(str);
+      rv = stream->written;
+
+      if (ptr == NULL && uptr == NULL)
+        {
+          CFIndex bufLen;
+          UInt8* buf;
+
+          bufLen = CFStringGetMaximumSizeForEncoding(length,
+                  kCFStringEncodingUTF8);
+          buf = (UInt8*) malloc(bufLen);
+
+          CFStringGetBytes(str, CFRangeMake(0, length),
+                  kCFStringEncodingUTF8, 0, 0, buf, bufLen, &bufLen);
+          _WriteTypeAndLength(stream, 5 << 4, bufLen);
+          CFPlistWriteStreamWrite(stream, buf, bufLen);
+
+          free(buf);
+        }
+      else if (ptr != NULL)
+        {
+          _WriteTypeAndLength(stream, 5 << 4, length);
+          CFPlistWriteStreamWrite(stream, (const UInt8*) ptr, length);
+        }
+      else
+        {
+          CFIndex i;
+          _WriteTypeAndLength(stream, 6 << 4, length*2);
+
+          for (i = 0; i < length; i++)
+            _Write16BE(stream, uptr[i]);
+        }
+    }
+  else
+    {
+      return 0;
+    }
+  return rv;
+}
+
+static void
+_WriteInt(CFPlistWriteStream* stream, int bytes, CFIndex value)
+{
+  if (bytes == 1)
+    {
+      UInt8 v = value;
+      _Write8(stream, v);
+    }
+  else if (bytes == 2)
+    {
+      UInt16 v = value;
+      _Write16BE(stream, v);
+    }
+  else
+    {
+      UInt32 v = value;
+      _Write32BE(stream, v);
+    }
+}
+
+static void
 CFBinaryPlistWrite (CFPropertyListRef plist, CFPlistWriteStream * stream)
 {
+  CFMutableArrayRef offsetTable;
+  UInt32 rootObjectId;
+  CFIndex offsetSize, refSize, objectCount, offset, offsetTableOffset, i;
+
+
+  // Header
+  CFPlistWriteStreamWrite (stream, _kCFBinaryPlistHeader,
+          _kCFBinaryPlistHeaderLength);
+
+  // Data
+  objectCount = CFPlistGetObjectCount(plist);
+
+  // We store integers as pointer values
+  offsetTable = CFArrayCreateMutable(NULL, objectCount, NULL);
+  refSize = (objectCount > 255) ? 2 : 1;
+
+  // Hack to make sure that the root object has ID 0.
+  // This is not a requirement, but let's be conservative.
+  CFArrayAppendValue(offsetTable, 0);
+  rootObjectId = 0;
+
+  offset = CFBinaryPlistWriteObject(plist, stream, offsetTable, refSize);
+  CFArraySetValueAtIndex(offsetTable, rootObjectId, (void*)(uintptr_t) offset);
+
+  // Offset table
+  if (stream->written > 65535)
+    offsetSize = 4;
+  else if (stream->written > 255)
+    offsetSize = 2;
+  else
+    offsetSize = 1;
+  offsetTableOffset = stream->written;
+
+  for (i = 0; i < objectCount; i++)
+    {
+      CFIndex value;
+      value = (CFIndex) CFArrayGetValueAtIndex(offsetTable, i);
+      _WriteInt(stream, offsetSize, value);
+    }
+
+  // Trailer
+  CFPlistWriteStreamWrite (stream, "\0\0\0\0\0", 6);
+  _Write8(stream, offsetSize);
+  _Write8(stream, refSize);
+  _Write64BE(stream, objectCount);
+  _Write64BE(stream, rootObjectId);
+  _Write64BE(stream, offsetTableOffset);
+
+  CFPlistWriteStreamFlush(stream);
 }
 
 static const UInt8 _kCFXMLPlistHeader[] =
@@ -1616,6 +2454,18 @@ CFPropertyListCreateWithData (CFAllocatorRef alloc, CFDataRef data,
   UniChar buffer[_kCFPlistBufferSize];
   const UInt8 *bytes;
   CFPlistString string;
+  
+  bytes = CFDataGetBytePtr (data);
+  dataLen = CFDataGetLength (data);
+  
+  if (bytes > _kCFXMLPlistHeaderLength
+          && memcmp(bytes, _kCFBinaryPlistHeader,
+          _kCFBinaryPlistHeaderLength) == 0)
+    {
+      if (fmt != NULL)
+        *fmt = kCFPropertyListBinaryFormat_v1_0;
+      return CFBinaryPlistCreate(alloc, data, opts, err);
+    }
 
   enc = CFPlistGetEncoding (data);
   if (enc == kCFStringEncodingInvalidId)
@@ -1631,8 +2481,6 @@ CFPropertyListCreateWithData (CFAllocatorRef alloc, CFDataRef data,
     }
 
 
-  bytes = CFDataGetBytePtr (data);
-  dataLen = CFDataGetLength (data);
   start = buffer;
   tmp = buffer;
 
