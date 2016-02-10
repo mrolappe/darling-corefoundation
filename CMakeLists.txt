@@ -27,7 +27,7 @@ else(BITS EQUAL 64)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-abi-version=1")
 endif(BITS EQUAL 64)
 
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib${SUFFIX}/darling")
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/darling")
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE) 
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
@@ -123,4 +123,4 @@ add_library(CoreFoundation OBJECT ${cf_SRCS})
 set_source_files_properties(${cf_SRCS} LANGUAGE C)
 #target_link_libraries(CoreFoundation system icucore)
 
-#install(TARGETS CoreFoundation DESTINATION lib${SUFFIX}/darling)
+#install(TARGETS CoreFoundation DESTINATION ${CMAKE_INSTALL_LIBDIR}/darling)
