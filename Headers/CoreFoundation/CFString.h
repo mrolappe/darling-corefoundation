@@ -54,7 +54,8 @@ typedef UInt32 CFStringEncoding;
 /*
  * Constants
  */
-typedef enum
+typedef CFOptionFlags CFStringCompareFlags;
+enum
 {
   kCFCompareCaseInsensitive = 1,
   kCFCompareBackwards = 4,
@@ -67,7 +68,7 @@ typedef enum
   kCFCompareWidthInsensitive = 256,
   kCFCompareForcedOrdering = 512
 #endif
-} CFStringCompareFlags;
+};
 
 enum CFStringBuiltInEncodings
 {

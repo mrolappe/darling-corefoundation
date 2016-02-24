@@ -48,6 +48,8 @@
 #endif
 
 #include <GNUstepBase/GSVersionMacros.h>
+#include <CoreFoundation/CFAvailability.h>
+#include <MacTypes.h>
 
 /*
  * CoreFoundation types
@@ -59,17 +61,13 @@ typedef @GS_UINT16_T@ UInt16;
 typedef @GS_SINT16_T@ SInt16;
 typedef @GS_UINT32_T@ UInt32;
 typedef @GS_SINT32_T@ SInt32;
-typedef @GS_UINT64_T@ UInt64;
-typedef @GS_SINT64_T@ SInt64;
 typedef SInt32 OSStatus;
 
 typedef float Float32;
 typedef double Float64;
 typedef UInt16 UniChar;
 typedef UInt8 *StringPtr;
-typedef const StringPtr *ConstStringPtr;
 typedef UInt8 Str255[256];
-typedef const Str255 *ConstStr255Param;
 typedef SInt16 OSErr;
 typedef SInt16 RegionCode;
 typedef SInt16 LangCode;
