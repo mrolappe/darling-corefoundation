@@ -3,4 +3,10 @@
 #include <stdint.h>
 #define GS_GC_STRONG
 #define GSNativeChar char
-#define UTF32Char uint32_t
+
+#ifdef __i386__
+typedef unsigned long UTF32Char;
+#else
+typedef unsigned int UTF32Char;
+#endif
+

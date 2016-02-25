@@ -58,8 +58,8 @@ if (BITS EQUAL 64)
 	set(GS_SINT32_T "signed int")
 	set(GS_UINT32_T "unsigned int")
 else (BITS EQUAL 64)
-	set(GS_SINT32_T "signed int")
-	set(GS_UINT32_T "unsigned int")
+	set(GS_SINT32_T "signed long")
+	set(GS_UINT32_T "unsigned long")
 endif (BITS EQUAL 64)
 
 configure_file(Headers/CoreFoundation/CFBase.h.in
