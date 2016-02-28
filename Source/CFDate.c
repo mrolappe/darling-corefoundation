@@ -274,7 +274,7 @@ CFAbsoluteTimeGetGregorianDate (CFAbsoluteTime at, CFTimeZoneRef tz)
     NULL, NULL, NULL);
   
   gdate.hour = (SInt8)floor (seconds / 3600.0) % 24;
-  gdate.minute = (SInt8)floor (seconds / 60.0) % 60;
+  gdate.minute = ((int)floor (seconds / 60.0)) % 60;
   gdate.second = seconds - (floor(seconds / 60.0) * 60.0);
   
   return gdate;
