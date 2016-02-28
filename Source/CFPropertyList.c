@@ -966,6 +966,27 @@ CFPlistWriteDataBase64 (CFDataRef data, CFPlistWriteStream * stream)
 static void
 CFPlistWriteXMLString (CFStringRef str, CFPlistWriteStream * stream)
 {
+  const char* pstr;
+  CFIndex bufLen, length;
+  UInt8* buf;
+
+  pstr = CFStringGetCStringPtr(str, kCFStringEncodingUTF8);
+  if (pstr != NULL)
+    {
+      CFPlistWriteStreamWrite(stream, pstr, strlen(pstr));
+      return;
+    }
+
+  length = CFStringGetLength(str);
+  bufLen = CFStringGetMaximumSizeForEncoding(length,
+		  kCFStringEncodingUTF8);
+  buf = (UInt8*) malloc(bufLen);
+
+  CFStringGetBytes(str, CFRangeMake(0, length),
+		  kCFStringEncodingUTF8, 0, 0, buf, bufLen, &bufLen);
+
+  CFPlistWriteStreamWrite(stream, buf, bufLen);
+  free(buf);
 }
 
 static void
@@ -1021,7 +1042,7 @@ CFXMLPlistWriteObject (CFPropertyListRef plist, CFPlistWriteStream * stream,
       CFAbsoluteTime at;
       CFGregorianDate gdate;
       int printed;
-      char buffer[21];          /* Size of "%04d-%02d-%02dT%02d:%02d:%02dZ" + '\0' */
+      char buffer[40];
 
       at = CFDateGetAbsoluteTime ((CFDateRef) plist);
       gdate = CFAbsoluteTimeGetGregorianDate (at, NULL);
@@ -1036,7 +1057,29 @@ CFXMLPlistWriteObject (CFPropertyListRef plist, CFPlistWriteStream * stream,
     }
   else if (typeID == CFDictionaryGetTypeID ())
     {
+      CFIndex count, i;
+      CFTypeRef *keys, *values;
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "<dict>\n", 7);
 
+      count = CFDictionaryGetCount((CFDictionaryRef) plist);
+      keys = (CFTypeRef*) calloc(count, sizeof(CFTypeRef));
+      values = (CFTypeRef*) calloc(count, sizeof(CFTypeRef));
+      CFDictionaryGetKeysAndValues((CFDictionaryRef) plist, (const void**) keys, (const void**) values);
+
+      for (i = 0; i < count; i++)
+        {
+          CFPlistIndent (stream, lev+1);
+          CFPlistWriteStreamWrite (stream, (const UInt8 *) "<key>", 5);
+          if (CFGetTypeID(keys[i]) == CFStringGetTypeID ())
+            CFPlistWriteXMLString ((CFStringRef) keys[i], stream);
+          CFPlistWriteStreamWrite (stream, (const UInt8 *) "</key>\n", 7);
+
+          CFXMLPlistWriteObject(values[i], stream, lev+1);
+        }
+
+      free(keys);
+      free(values);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "</dict>", 7);
     }
   else if (typeID == CFNumberGetTypeID ())
     {
@@ -2405,8 +2448,8 @@ CFBinaryPlistWrite (CFPropertyListRef plist, CFPlistWriteStream * stream)
 
 static const UInt8 _kCFXMLPlistHeader[] =
   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-  "<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" \"http://www.gnustep.org/plist-0_9.dtd\">\n"
-  "<plist version=\"0.9\">\n";
+  "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+  "<plist version=\"1.0\">\n";
 static const CFIndex _kCFXMLPlistHeaderLength =
   sizeof (_kCFXMLPlistHeader) - 1;
 
