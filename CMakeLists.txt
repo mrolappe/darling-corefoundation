@@ -44,6 +44,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../icu/icuSources/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../icu/icuSources/i18n)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libxml2/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/../libxml2/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../apr/apr-util/apr-util)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../apr/apr/apr/include)
 
 set(GS_SINT8_T "signed char")
 set(GS_UINT8_T "unsigned char")

@@ -1,7 +1,7 @@
 /* CFPropertyList.c
    
    Copyright (C) 2012 Free Software Foundation, Inc.
-   Copyright (C) 2015 Lubos Dolezel
+   Copyright (C) 2015-2016 Lubos Dolezel
    
    Written by: Stefan Bidigaray
    Date: August, 2012
@@ -38,6 +38,7 @@
 #include "CoreFoundation/CFDateFormatter.h"
 #include "CoreFoundation/GSCharacter.h"
 #include "CoreFoundation/GSUnicode.h"
+#include <apr-1/apr_base64.h>
 
 #include "GSPrivate.h"
 #include "GSCArray.h"
@@ -77,30 +78,6 @@ static const UInt32 _kCFOpenStepPlistQuotables[4] =
 #define CFOpenStepPlistCharacterIsQuotable(c) \
   (((c) > 128) \
    || ((_kCFOpenStepPlistQuotables[(c) >> 5] & (1 << ((c) & 0x1F))) > 0))
-
-#if 0
-static const UInt8 *_kCFPlistXMLArrayTag = (const UInt8 *) "array";
-static const UInt8 *_kCFPlistXMLDictTag = (const UInt8 *) "dict";
-static const UInt8 *_kCFPlistXMLKeyTag = (const UInt8 *) "key";
-static const UInt8 *_kCFPlistXMLValueTag = (const UInt8 *) "value";
-static const UInt8 *_kCFPlistXMLDataTag = (const UInt8 *) "data";
-static const UInt8 *_kCFPlistXMLDateTag = (const UInt8 *) "date";
-static const UInt8 *_kCFPlistXMLIntegerTag = (const UInt8 *) "integer";
-static const UInt8 *_kCFPlistXMLRealTag = (const UInt8 *) "real";
-static const UInt8 *_kCFPlistXMLTrueTag = (const UInt8 *) "true";
-static const UInt8 *_kCFPlistXMLFalseTag = (const UInt8 *) "false";
-
-static const CFIndex _kCFPlistXMLArrayTagLength = 5;
-static const CFIndex _kCFPlistXMLDictTagLength = 4;
-static const CFIndex _kCFPlistXMLKeyTagLength = 3;
-static const CFIndex _kCFPlistXMLValueTagLength = 5;
-static const CFIndex _kCFPlistXMLDataTagLength = 4;
-static const CFIndex _kCFPlistXMLDateTagLength = 4;
-static const CFIndex _kCFPlistXMLIntegerTagLength = 7;
-static const CFIndex _kCFPlistXMLRealTagLength = 4;
-static const CFIndex _kCFPlistXMLTrueTagLength = 4;
-static const CFIndex _kCFPlistXMLFalseTagLength = 5;
-#endif
 
 #define _kCFPlistBufferSize 1024
 
@@ -404,62 +381,6 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
 
   return copy;
 }
-
-#if 0
-/* Binary property list object ref */
-#define PL_BOOL 0x0
-#define PL_INT  0x1
-#define PL_REAL 0x2
-#define PL_DATE 0x3
-#define PL_DATA 0x4
-#define PL_ASTR 0x5
-#define PL_USTR 0x6
-#define PL_UID  0x8
-#define PL_ARRY 0xA
-#define PL_SET  0xC
-#define PL_DICT 0xD
-
-static void
-CFBinaryPlistWriteObject (CFPropertyListRef plist, CFPlistWriteStream stream,
-                          CFIndex lev, CFOptionFlags opts)
-{
-  CFTypeID typeID;
-
-  typeID = CFGetTypeID (plist);
-  if (typeID == CFArrayGetTypeID ())
-    {
-
-    }
-  else if (typeID == CFBooleanGetTypeID ())
-    {
-
-    }
-  else if (typeID == CFDataGetTypeID ())
-    {
-
-    }
-  else if (typeID == CFDateGetTypeID ())
-    {
-
-    }
-  else if (typeID == CFDictionaryGetTypeID ())
-    {
-
-    }
-  else if (typeID == CFNumberGetTypeID ())
-    {
-
-    }
-  else if (typeID == CFStringGetTypeID ())
-    {
-
-    }
-  else
-    {
-      return;
-    }
-}
-#endif
 
 static CFErrorRef
 CFPlistCreateError (CFIndex code, CFStringRef message)
@@ -960,7 +881,16 @@ CFPlistWriteDataBase16 (CFDataRef data, CFPlistWriteStream * stream)
 static void
 CFPlistWriteDataBase64 (CFDataRef data, CFPlistWriteStream * stream)
 {
+	int len;
+	char* encoded;
 
+	len = apr_base64_encode_len(CFDataGetLength(data));
+	encoded = malloc(len);
+
+	len = apr_base64_encode(encoded, CFDataGetBytePtr(data), CFDataGetLength(data));
+	CFPlistWriteStreamWrite(stream, encoded, len);
+
+	free(encoded);
 }
 
 static void
@@ -1831,7 +1761,20 @@ dict_out:
     }
   else if (strcmp(node->name, "data") == 0)
     {
-      // TODO: base64 decoding...
+      xmlChar* content;
+	  char* decoded;
+	  int len;
+	  CFDataRef data;
+
+	  content = xmlNodeGetContent(node);
+	  len = apr_base64_decode_len(content);
+
+	  decoded = (char*) malloc(len);
+	  len = apr_base64_decode(decoded, content);
+	  data = CFDataCreate(alloc, (UInt8*) decoded, len);
+
+	  free(decoded);
+	  return data;
     }
   else if (strcmp(node->name, "array") == 0)
     {
