@@ -1108,13 +1108,13 @@ CFPlistWriteOpenStepString (CFStringRef str, CFPlistWriteStream * stream)
                                    _kCFPlistBufferSize, &used);
           mark = (const UInt8 *) buffer;
           cursor = (const UInt8 *) buffer;
-          while ((cursor - mark) < read)
+          while (cursor < buffer+read)
             {
               ch = *cursor++;
               if (ch == '\a' || ch == '\b' || ch == '\v' || ch == '\f'
                   || ch == '\"')
                 {
-                  CFPlistWriteStreamWrite (stream, mark, cursor - mark);
+                  CFPlistWriteStreamWrite (stream, mark, cursor - mark - 1);
                   CFPlistWriteStreamWrite (stream, (const UInt8 *) "\\", 1);
                   if (ch == '\a')
                     CFPlistWriteStreamWrite (stream, (const UInt8 *) "a", 1);
@@ -1126,9 +1126,10 @@ CFPlistWriteOpenStepString (CFStringRef str, CFPlistWriteStream * stream)
                     CFPlistWriteStreamWrite (stream, (const UInt8 *) "f", 1);
                   else if (ch == '\"')
                     CFPlistWriteStreamWrite (stream, (const UInt8 *) "\"", 1);
+				  mark = cursor;
                 }
             }
-          CFPlistWriteStreamWrite (stream, mark, cursor - mark);
+          CFPlistWriteStreamWrite (stream, mark, (buffer+read) - mark);
           loc += read;
           length -= read;
         }
@@ -1654,7 +1655,7 @@ CFPropertyListRef CFXMLHandleXMLElement(CFAllocatorRef alloc,
         {
           CFMutableDictionaryRef mut;
 
-          mut = CFDictionaryCreateMutableCopy(alloc, dict, 0);
+          mut = CFDictionaryCreateMutableCopy(alloc, 0, dict);
 
           CFRelease(dict);
           dict = (CFDictionaryRef) mut;
@@ -2415,7 +2416,7 @@ CFOpenStepPlistWrite (CFPropertyListRef plist, CFPlistWriteStream * stream)
 {
   /* We'll include a UTF-8 BOM to OpenStep formatted property lists.
    */
-  CFPlistWriteStreamWrite (stream, UTF8BOM, 3);
+  // CFPlistWriteStreamWrite (stream, UTF8BOM, 3);
   CFOpenStepPlistWriteObject (plist, stream, 0);
   CFPlistWriteStreamFlush (stream);
 }

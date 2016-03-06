@@ -989,7 +989,7 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
 
   if (CF_IS_OBJC (_kCFStringTypeID, str))
     {
-      /* Boolean b; */
+      Boolean b;
       uintptr_t opts = 0;
 
       if (lossByte != 0)
@@ -997,19 +997,13 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
       if (isExtRep != 0)
         opts |= 2;              /*NSStringEncodingConversionExternalRepresentation */
 
-      // FIXME: Base's NSString doesn't implement getBytes:... yet!
-      *usedBufLen = 0;
-      return 0;
-
-      /*
          CF_OBJC_CALLV (Boolean, b, str,
-         "getBytes:maxLength:usedLength:encoding:options:range:remainingRange:",
-         buffer, maxBufLen, usedBufLen,
-         CFStringConvertEncodingToNSStringEncoding (enc), opts,
-         range, NULL);
+            "getBytes:maxLength:usedLength:encoding:options:range:remainingRange:",
+             buffer, maxBufLen, usedBufLen,
+             CFStringConvertEncodingToNSStringEncoding (enc), opts,
+             range, NULL);
 
          return b ? *usedBufLen : 0;
-       */
     }
 
   bufferStart = buffer;
