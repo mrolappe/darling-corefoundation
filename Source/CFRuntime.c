@@ -451,6 +451,7 @@ GS_PRIVATE void CFDateFormatterInitialize (void);
 GS_PRIVATE void CFDictionaryInitialize (void);
 GS_PRIVATE void CFErrorInitialize (void);
 GS_PRIVATE void CFLocaleInitialize (void);
+GS_PRIVATE void CFNotificationCenterInitialize(void);
 GS_PRIVATE void CFNullInitialize (void);
 GS_PRIVATE void CFNumberInitialize (void);
 GS_PRIVATE void CFNumberFormatterInitialize (void);
@@ -503,6 +504,7 @@ CFInitialize (void)
   CFDictionaryInitialize ();
   CFErrorInitialize ();
   CFLocaleInitialize ();
+  CFNotificationCenterInitialize ();
   CFNullInitialize ();
   CFNumberInitialize ();
   CFNumberFormatterInitialize ();

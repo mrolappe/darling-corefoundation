@@ -266,3 +266,11 @@ CFTypeRef CFBundleGetValueForInfoDictionaryKey(CFBundleRef bundle,
   return [ns objectForInfoDictionaryKey: (NSString *)key];
 }
 
+CFStringRef CFBundleCopyLocalizedString(CFBundleRef bundle, CFStringRef key,
+		CFStringRef value, CFStringRef tableName)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  return (CFStringRef) [ns localizedStringForKey: (NSString*) key
+                                           value: (NSString*) value
+                                           table: (NSString*) tableName];
+}

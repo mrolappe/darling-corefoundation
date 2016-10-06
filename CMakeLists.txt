@@ -119,6 +119,8 @@ set(cf_SRCS
 	Source/NSCFType.m
 	
 	Source/darling/AppleCFString.m
+        Source/CFNotificationCenter.c
+        Source/CFPreferences.m
 )
 
 add_library(CoreFoundation OBJECT ${cf_SRCS})

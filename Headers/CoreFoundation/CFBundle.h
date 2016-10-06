@@ -82,6 +82,8 @@ CFDictionaryRef CFBundleGetLocalInfoDictionary(CFBundleRef bundle);
 
 CFTypeRef CFBundleGetValueForInfoDictionaryKey(CFBundleRef bundle,
                                                CFStringRef key);
+CFStringRef CFBundleCopyLocalizedString(CFBundleRef bundle, CFStringRef key,
+		CFStringRef value, CFStringRef tableName);
 
 CF_EXPORT const CFStringRef kCFBundleInfoDictionaryVersionKey;
 CF_EXPORT const CFStringRef kCFBundleExecutableKey;
@@ -89,6 +91,16 @@ CF_EXPORT const CFStringRef kCFBundleIdentifierKey;
 CF_EXPORT const CFStringRef kCFBundleVersionKey;
 CF_EXPORT const CFStringRef kCFBundleNameKey;
 CF_EXPORT const CFStringRef kCFBundleLocalizationsKey;
+
+#define CFCopyLocalizedString(key, comment) \
+	CFBundleCopyLocalizedString(CFBundleGetMainBundle(), (key), (key), NULL)
+#define CFCopyLocalizedStringWithDefaultValue(key, table, bundle, value, comment) \
+	CFBundleCopyLocalizedString((bundle), (key), (value), (table))
+#define CFCopyLocalizedStringFromTable(key, table, comment) \
+	CFBundleCopyLocalizedString(CFBundleGetMainBundle(), (key), (key), (table))
+#define CFCopyLocalizedStringFromTableInBundle(key, table, bundle, comment) \
+	CFBundleCopyLocalizedString((bundle), (key), (key), (table))
+
 
 CF_EXTERN_C_END
 
