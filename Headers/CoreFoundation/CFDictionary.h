@@ -28,6 +28,7 @@
 #define __COREFOUNDATION_CFDICTIONARY_H__ 1
 
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFData.h>
 
 CF_EXTERN_C_BEGIN
 /** \ingroup CFDictionaryRef */

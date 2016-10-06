@@ -144,6 +144,14 @@ typedef UInt8 UTF8Char;
 #endif
 #endif
 
+#define CF_FORMAT_FUNCTION(x,y) __attribute__ ((format (CFString, x, y)))
+#define CF_ASSUME_NONNULL_BEGIN
+#define CF_ASSUME_NONNULL_END
+#define CF_RETURNS_RETAINED
+#define CF_IMPLICIT_BRIDGING_ENABLED
+#define CF_IMPLICIT_BRIDGING_DISABLED
+#define __nullable
+
 #if defined(__GNUC__) || defined(__llvm__)
 #define GS_PURE_FUNCTION __attribute__((pure))
 #else
@@ -199,12 +207,13 @@ CFRangeMake (CFIndex location, CFIndex length)
 }
 
 /* Returned by comparison functions */
-typedef enum
+typedef int CFComparisonResult;
+enum
 {
   kCFCompareLessThan = -1,
   kCFCompareEqualTo = 0,
   kCFCompareGreaterThan = 1
-} CFComparisonResult;
+} /*CFComparisonResult*/;
 
 /* Return when a value is not found */
 enum

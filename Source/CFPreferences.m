@@ -20,11 +20,25 @@
 */
 #include <CoreFoundation/CFPreferences.h>
 #include <Foundation/NSUserDefaults.h>
+#include "GSPrivate.h"
 
 // NOTE
 // The following incomplete implementation wraps Foundation's NSUserDetails API.
 // The problem is NSUserDetails only provides a subset of required functionality.
 // TODO: NSUserDetails should be wrap CFPreferences.
+
+CONST_STRING_DECL(kCFPreferencesAnyApplication,
+  "kCFPreferencesAnyApplication");
+CONST_STRING_DECL(kCFPreferencesCurrentApplication,
+  "kCFPreferencesCurrentApplication");
+CONST_STRING_DECL(kCFPreferencesAnyHost,
+  "kCFPreferencesAnyHost");
+CONST_STRING_DECL(kCFPreferencesCurrentHost,
+  "kCFPreferencesCurrentHost");
+CONST_STRING_DECL(kCFPreferencesAnyUser,
+  "kCFPreferencesAnyUser");
+CONST_STRING_DECL(kCFPreferencesCurrentUser,
+  "kCFPreferencesCurrentUser");
 
 CFPropertyListRef CFPreferencesCopyAppValue(CFStringRef key, CFStringRef applicationID)
 {

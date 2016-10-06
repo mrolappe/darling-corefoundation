@@ -25,6 +25,7 @@
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFArray.h>
 
 CF_EXTERN_C_BEGIN
 

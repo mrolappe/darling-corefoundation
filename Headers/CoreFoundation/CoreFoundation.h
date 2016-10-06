@@ -43,8 +43,10 @@
 #include <CoreFoundation/CFDictionary.h>
 #include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFLocale.h>
+#include <CoreFoundation/CFNotificationCenter.h>
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFNumberFormatter.h>
+#include <CoreFoundation/CFPreferences.h>
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFSet.h>

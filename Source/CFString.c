@@ -34,6 +34,7 @@
 #include "CoreFoundation/CFStringEncodingExt.h"
 #include "CoreFoundation/GSCharacter.h"
 #include "CoreFoundation/GSUnicode.h"
+#include "CoreFoundation/CFPreferences.h"
 
 #include "GSPrivate.h"
 #include "GSObjCRuntime.h"
@@ -509,6 +510,18 @@ CFStringInitialize (void)
   GSRuntimeConstantInit (kCFURLFileOwnerID, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFURLHTTPStatusCode, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFURLHTTPStatusLine, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFPreferencesAnyApplication,
+                         _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFPreferencesCurrentApplication,
+                         _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFPreferencesAnyHost,
+                         _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFPreferencesCurrentHost,
+                         _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFPreferencesAnyUser,
+                         _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFPreferencesCurrentUser,
+                         _kCFStringTypeID);
 }
 
 
