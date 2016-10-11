@@ -25,7 +25,9 @@
 // NOTE
 // The following incomplete implementation wraps Foundation's NSUserDetails API.
 // The problem is NSUserDetails only provides a subset of required functionality.
-// TODO: NSUserDetails should be wrap CFPreferences.
+// TODO: NSUserDetails should wrap CFPreferences. (or at least check against kCFPreferencesCurrentApplication before that)
+
+CF_EXTERN_C_BEGIN
 
 CONST_STRING_DECL(kCFPreferencesAnyApplication,
   "kCFPreferencesAnyApplication");
@@ -39,6 +41,8 @@ CONST_STRING_DECL(kCFPreferencesAnyUser,
   "kCFPreferencesAnyUser");
 CONST_STRING_DECL(kCFPreferencesCurrentUser,
   "kCFPreferencesCurrentUser");
+
+CF_EXTERN_C_END
 
 CFPropertyListRef CFPreferencesCopyAppValue(CFStringRef key, CFStringRef applicationID)
 {
