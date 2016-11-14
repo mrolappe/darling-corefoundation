@@ -43,6 +43,7 @@
 #include <CoreFoundation/CFDictionary.h>
 #include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFLocale.h>
+#include <CoreFoundation/CFMachPort.h>
 #include <CoreFoundation/CFNotificationCenter.h>
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFNumberFormatter.h>
@@ -61,6 +62,9 @@
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFXMLNode.h>
 #include <CoreFoundation/CFXMLParser.h>
+
+/* Some libs expect libdispatch to be included after including this file */
+#include <dispatch/dispatch.h>
 
 #endif /* __COREFOUNDATION_COREFOUNDATION_H__ */
 
