@@ -85,6 +85,8 @@ CFTypeRef CFBundleGetValueForInfoDictionaryKey(CFBundleRef bundle,
 CFStringRef CFBundleCopyLocalizedString(CFBundleRef bundle, CFStringRef key,
 		CFStringRef value, CFStringRef tableName);
 
+CFURLRef CFBundleCopySupportFilesDirectoryURL(CFBundleRef bundle);
+
 CF_EXPORT const CFStringRef kCFBundleInfoDictionaryVersionKey;
 CF_EXPORT const CFStringRef kCFBundleExecutableKey;
 CF_EXPORT const CFStringRef kCFBundleIdentifierKey;

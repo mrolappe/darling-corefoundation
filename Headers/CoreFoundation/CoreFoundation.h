@@ -63,8 +63,5 @@
 #include <CoreFoundation/CFXMLNode.h>
 #include <CoreFoundation/CFXMLParser.h>
 
-/* Some libs expect libdispatch to be included after including this file */
-#include <dispatch/dispatch.h>
-
 #endif /* __COREFOUNDATION_COREFOUNDATION_H__ */
 

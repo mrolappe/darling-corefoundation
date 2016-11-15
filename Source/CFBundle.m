@@ -26,6 +26,7 @@
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBundle.h"
+#include "CoreFoundation/CFBundlePriv.h"
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSURL.h>
 
@@ -273,4 +274,19 @@ CFStringRef CFBundleCopyLocalizedString(CFBundleRef bundle, CFStringRef key,
   return (CFStringRef) [ns localizedStringForKey: (NSString*) key
                                            value: (NSString*) value
                                            table: (NSString*) tableName];
+}
+
+CFURLRef CFBundleCopySupportFilesDirectoryURL(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  NSString* rootPath = [ns _bundleRootPath];
+  NSURL* url = [NSURL fileURLWithPath: rootPath isDirectory: YES];
+  return (CFURLRef) [url retain];
+}
+
+CFURLRef _CFBundleCopyInfoPlistURL(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  NSURL* url = [ns pathForResource: @"Info" ofType: @"plist"];
+  return (CFURLRef) [url retain];
 }
