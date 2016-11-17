@@ -48,6 +48,55 @@ CONST_STRING_DECL(kCFBundleVersionKey, "CFBundleVersion");
 CONST_STRING_DECL(kCFBundleNameKey, "CFBundleName");
 CONST_STRING_DECL(kCFBundleLocalizationsKey, "CFBundleLocalizations");
 
+CONST_STRING_DECL(_kCFBundlePackageTypeKey, "CFBundlePackageType")
+CONST_STRING_DECL(_kCFBundleSignatureKey, "CFBundleSignature")
+CONST_STRING_DECL(_kCFBundleIconFileKey, "CFBundleIconFile")
+CONST_STRING_DECL(_kCFBundleDocumentTypesKey, "CFBundleDocumentTypes")
+CONST_STRING_DECL(_kCFBundleURLTypesKey, "CFBundleURLTypes")
+
+CONST_STRING_DECL(_kCFBundleDisplayNameKey, "CFBundleDisplayName")
+CONST_STRING_DECL(_kCFBundleShortVersionStringKey, "CFBundleShortVersionString")
+CONST_STRING_DECL(_kCFBundleGetInfoStringKey, "CFBundleGetInfoString")
+CONST_STRING_DECL(_kCFBundleGetInfoHTMLKey, "CFBundleGetInfoHTML")
+
+CONST_STRING_DECL(_kCFBundleTypeNameKey, "CFBundleTypeName")
+CONST_STRING_DECL(_kCFBundleTypeRoleKey, "CFBundleTypeRole")
+CONST_STRING_DECL(_kCFBundleTypeIconFileKey, "CFBundleTypeIconFile")
+CONST_STRING_DECL(_kCFBundleTypeOSTypesKey, "CFBundleTypeOSTypes")
+CONST_STRING_DECL(_kCFBundleTypeExtensionsKey, "CFBundleTypeExtensions")
+CONST_STRING_DECL(_kCFBundleTypeMIMETypesKey, "CFBundleTypeMIMETypes")
+
+CONST_STRING_DECL(_kCFBundleURLNameKey, "CFBundleURLName")
+CONST_STRING_DECL(_kCFBundleURLIconFileKey, "CFBundleURLIconFile")
+CONST_STRING_DECL(_kCFBundleURLSchemesKey, "CFBundleURLSchemes")
+
+CONST_STRING_DECL(_kCFBundleOldExecutableKey, "NSExecutable")
+CONST_STRING_DECL(_kCFBundleOldInfoDictionaryVersionKey, "NSInfoPlistVersion")
+CONST_STRING_DECL(_kCFBundleOldNameKey, "NSHumanReadableName")
+CONST_STRING_DECL(_kCFBundleOldIconFileKey, "NSIcon")
+CONST_STRING_DECL(_kCFBundleOldDocumentTypesKey, "NSTypes")
+CONST_STRING_DECL(_kCFBundleOldShortVersionStringKey, "NSAppVersion")
+
+CONST_STRING_DECL(_kCFBundleOldTypeNameKey, "NSName")
+CONST_STRING_DECL(_kCFBundleOldTypeRoleKey, "NSRole")
+CONST_STRING_DECL(_kCFBundleOldTypeIconFileKey, "NSIcon")
+CONST_STRING_DECL(_kCFBundleOldTypeExtensions1Key, "NSUnixExtensions")
+CONST_STRING_DECL(_kCFBundleOldTypeExtensions2Key, "NSDOSExtensions")
+CONST_STRING_DECL(_kCFBundleOldTypeOSTypesKey, "NSMacOSType")
+
+CONST_STRING_DECL(_kCFBundleInfoPlistURLKey, "CFBundleInfoPlistURL")
+CONST_STRING_DECL(_kCFBundleRawInfoPlistURLKey, "CFBundleRawInfoPlistURL")
+CONST_STRING_DECL(_kCFBundleNumericVersionKey, "CFBundleNumericVersion")
+CONST_STRING_DECL(_kCFBundleExecutablePathKey, "CFBundleExecutablePath")
+CONST_STRING_DECL(_kCFBundleResourcesFileMappedKey, "CSResourcesFileMapped")
+CONST_STRING_DECL(_kCFBundleCFMLoadAsBundleKey, "CFBundleCFMLoadAsBundle")
+CONST_STRING_DECL(_kCFBundleAllowMixedLocalizationsKey, "CFBundleAllowMixedLocalizations")
+
+CONST_STRING_DECL(_kCFBundleInitialPathKey, "NSBundleInitialPath")
+CONST_STRING_DECL(_kCFBundleResolvedPathKey, "NSBundleResolvedPath")
+CONST_STRING_DECL(_kCFBundlePrincipalClassKey, "NSPrincipalClass")
+
+
 @implementation NSBundle (CoreBaseAdditions)
 - (CFTypeID) _cfTypeID
 {
@@ -289,4 +338,24 @@ CFURLRef _CFBundleCopyInfoPlistURL(CFBundleRef bundle)
   NSBundle *ns = (NSBundle *) bundle;
   NSURL* url = [ns pathForResource: @"Info" ofType: @"plist"];
   return (CFURLRef) [url retain];
+}
+
+CFBundleRef _CFBundleCreateWithExecutableURLIfMightBeBundle(CFAllocatorRef allocator, CFURLRef _url)
+{
+	NSURL* url = (NSURL*) _url;
+	NSString* lastComponent;
+
+	url = [url URLByDeletingLastPathComponent]; // remove the executable path
+	lastComponent = [url lastPathComponent];
+
+	if ([lastComponent isEqualToString: @"MacOS"])
+	{
+		url = [url URLByDeletingLastPathComponent];
+		lastComponent = [url lastPathComponent];
+
+		if ([lastComponent isEqualToString: @"Contents"])
+			url = [url URLByDeletingLastPathComponent];
+	}
+
+	return (CFBundleRef) [[NSBundle alloc] initWithURL: url];
 }
