@@ -534,9 +534,9 @@ CFRunLoopProcessTimers (CFRunLoopRef rl, CFAbsoluteTime now,
               // Compute the next time
               if (!CFRunLoopTimerDoesRepeat(timer))
                 CFRunLoopTimerInvalidate(timer);
+              else
+                CFRunLoopTimerSetNextFireDate(timer, now + CFRunLoopTimerGetInterval(timer));
             }
-          else
-            CFRunLoopTimerSetNextFireDate(timer, now + CFRunLoopTimerGetInterval(timer));
         }
       else
         CFRunLoopTimerRemoveFromRunLoop(rl, timer);
