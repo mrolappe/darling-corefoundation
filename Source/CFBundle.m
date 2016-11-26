@@ -365,7 +365,7 @@ CFArrayRef CFBundleCreateBundlesFromDirectory(CFAllocatorRef allocator,
                                               CFURLRef directoryURL, CFStringRef bundleType)
 {
 	NSFileManager* fileManager = [[NSFileManager alloc] init];
-	NSArray<NSURL*>* contents;
+	NSArray* contents;
 	
 	contents = [fileManager contentsOfDirectoryAtURL: directoryURL
 							includingPropertiesForKeys: NULL
