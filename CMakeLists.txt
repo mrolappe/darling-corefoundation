@@ -46,6 +46,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libxml2/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/../libxml2/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../apr/apr-util/apr-util)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../apr/apr/apr/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libxpc)
+include_directories(${CMAKE_SOURCE_DIR}/src/launchd/liblaunch)
 
 set(GS_SINT8_T "signed char")
 set(GS_UINT8_T "unsigned char")
@@ -122,6 +124,7 @@ set(cf_SRCS
 	Source/CFNotificationCenter.c
 	Source/CFPreferences.m
 	Source/CFMachPort.c
+	Source/CFXPCBridge.c
 )
 
 add_library(CoreFoundation OBJECT ${cf_SRCS})
