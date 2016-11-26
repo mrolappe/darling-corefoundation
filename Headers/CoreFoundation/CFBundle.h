@@ -31,6 +31,7 @@
 #include <CoreFoundation/CFURL.h>
 #include <CoreFoundation/CFDictionary.h>
 #include <CoreFoundation/CFError.h>
+#include <CoreFoundation/CFArray.h>
 
 CF_EXTERN_C_BEGIN
 
@@ -86,6 +87,9 @@ CFStringRef CFBundleCopyLocalizedString(CFBundleRef bundle, CFStringRef key,
 		CFStringRef value, CFStringRef tableName);
 
 CFURLRef CFBundleCopySupportFilesDirectoryURL(CFBundleRef bundle);
+
+CFArrayRef CFBundleCreateBundlesFromDirectory(CFAllocatorRef allocator,
+                                              CFURLRef directoryURL, CFStringRef bundleType);
 
 CF_EXPORT const CFStringRef kCFBundleInfoDictionaryVersionKey;
 CF_EXPORT const CFStringRef kCFBundleExecutableKey;

@@ -29,6 +29,7 @@
 #include "CoreFoundation/CFBundlePriv.h"
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSURL.h>
+#include <Foundation/NSFileManager.h>
 
 #include "GSPrivate.h"
 
@@ -358,4 +359,26 @@ CFBundleRef _CFBundleCreateWithExecutableURLIfMightBeBundle(CFAllocatorRef alloc
 	}
 
 	return (CFBundleRef) [[NSBundle alloc] initWithURL: url];
+}
+
+CFArrayRef CFBundleCreateBundlesFromDirectory(CFAllocatorRef allocator,
+                                              CFURLRef directoryURL, CFStringRef bundleType)
+{
+	NSFileManager* fileManager = [[NSFileManager alloc] init];
+	NSArray<NSURL*>* contents;
+	
+	contents = [fileManager contentsOfDirectoryAtURL: directoryURL
+							includingPropertiesForKeys: NULL
+							mask: NSDirectoryEnumerationSkipsHiddenFiles
+							error: NULL];
+	
+	if (!contents)
+		return NULL;
+	
+	for (NSURL* url in contents)
+	{
+	}
+	
+	// TODO
+	return NULL;
 }
