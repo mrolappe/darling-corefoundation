@@ -25,6 +25,10 @@
 
 CFTypeRef _CFXPCCreateCFObjectFromXPCObject(xpc_object_t xpcattrs)
 {
+	// TODO
+	// This function converts XPC null, bool, string, data, int64,
+	// double, date, uuid, array and dictionary types to their
+	// CF counterparts.
 	return NULL;
 }
 
@@ -32,3 +36,7 @@ xpc_object_t _CFXPCCreateXPCObjectFromCFObject(CFTypeRef attrs)
 {
 	return NULL;
 }
+
+// TODO: _CFXPCCreateCFObjectFromXPCMessage
+// This function takes the "ECF19A18-7AA6-4141-B4DC-A2E5123B2B5C" data value
+// from the dictionary and parses it as a binary plist.

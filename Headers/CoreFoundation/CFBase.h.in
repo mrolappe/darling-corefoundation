@@ -150,6 +150,7 @@ typedef UInt8 UTF8Char;
 #define CF_RETURNS_RETAINED
 #define CF_IMPLICIT_BRIDGING_ENABLED
 #define CF_IMPLICIT_BRIDGING_DISABLED
+#define CF_RELEASES_ARGUMENT
 #define __nullable
 
 #if defined(__GNUC__) || defined(__llvm__)

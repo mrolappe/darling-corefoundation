@@ -91,6 +91,10 @@ CFURLRef CFBundleCopySupportFilesDirectoryURL(CFBundleRef bundle);
 CFArrayRef CFBundleCreateBundlesFromDirectory(CFAllocatorRef allocator,
                                               CFURLRef directoryURL, CFStringRef bundleType);
 
+Boolean CFBundleIsExecutableLoaded(CFBundleRef b);
+
+CFArrayRef CFBundleCopyResourceURLsOfType(CFBundleRef bundle, CFStringRef resourceType, CFStringRef subDirName);
+
 CF_EXPORT const CFStringRef kCFBundleInfoDictionaryVersionKey;
 CF_EXPORT const CFStringRef kCFBundleExecutableKey;
 CF_EXPORT const CFStringRef kCFBundleIdentifierKey;

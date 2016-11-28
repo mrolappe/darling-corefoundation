@@ -77,6 +77,9 @@ CFURLRef _CFBundleCopyInfoPlistURL(CFBundleRef bundle);
 CF_EXPORT
 CFBundleRef _CFBundleCreateWithExecutableURLIfMightBeBundle(CFAllocatorRef allocator, CFURLRef url);
 
+CF_EXPORT
+CFStringRef _CFBundleCopyMainBundleExecutableURL(Boolean* isRealBundle);
+
 CF_EXTERN_C_END
 
 #endif

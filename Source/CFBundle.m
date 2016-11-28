@@ -382,3 +382,21 @@ CFArrayRef CFBundleCreateBundlesFromDirectory(CFAllocatorRef allocator,
 	// TODO
 	return NULL;
 }
+
+Boolean CFBundleIsExecutableLoaded(CFBundleRef b)
+{
+	// TODO
+	return 1;
+}
+
+CFStringRef _CFBundleCopyMainBundleExecutableURL(Boolean* isRealBundle)
+{
+	// TODO
+	return CFSTR("TODO-_CFBundleCopyMainBundleExecutableURL");
+}
+
+CFArrayRef CFBundleCopyResourceURLsOfType(CFBundleRef bundle, CFStringRef resourceType, CFStringRef subDirName)
+{
+	// TODO
+	return NULL;
+}
