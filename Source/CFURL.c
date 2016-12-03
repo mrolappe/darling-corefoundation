@@ -991,7 +991,7 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
           CFRetain (path);
         filePathLen = CFStringGetLength(path);
         if (isDirectory
-            && CFStringGetCharacterAtIndex(path, filePathLen) != '/')
+            && CFStringGetCharacterAtIndex(path, filePathLen-1) != '/')
           {
             CFStringRef tmp;
             tmp = CFStringCreateWithFormat (alloc, NULL, CFSTR("%@/"), path);
