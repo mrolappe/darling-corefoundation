@@ -105,7 +105,12 @@ enum CFStringBuiltInEncodings
    called as few times as possible. */
 CF_EXPORT CFStringRef
 __CFStringMakeConstantString (const char *str) GS_PURE_FUNCTION;
+
+#ifndef DARLING
 #define CFSTR(x) __CFStringMakeConstantString("" x "")
+#else
+#define CFSTR(x) (CFStringRef)__builtin___CFStringMakeConstantString("" x "")
+#endif
 
 /** \name Creating a CFString
     \{

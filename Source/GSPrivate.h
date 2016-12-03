@@ -205,10 +205,18 @@ struct __CFConstantString
 #define DLL_EXPORT
 #endif
 
+#ifndef DARLING
 #define CONST_STRING_DECL(var, str) \
   static struct __CFConstantString __ ## var ## __ = \
     { {0, 0, {1, 0, 0}}, (void*)str, sizeof(str) - 1, 0, NULL }; \
   DLL_EXPORT const CFStringRef var = (CFStringRef) & __ ## var ## __;
+
+#else
+
+#define CONST_STRING_DECL(var, str) \
+  DLL_EXPORT const CFStringRef var = (CFStringRef) CFSTR(str);
+
+#endif
 
 #define CHAR_IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
 #define CHAR_IS_OCTAL(c) ((c) >= '0' && (c) <= '7')
