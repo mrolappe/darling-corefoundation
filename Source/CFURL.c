@@ -1912,3 +1912,52 @@ CFURLWriteBookmarkDataToFile (CFDataRef bookmarkRef, CFURLRef fileURL,
   return false; /* FIXME */
 }
 
+#ifdef DARLING
+#include <CoreServices/FileManager.h>
+#include <sys/stat.h>
+
+CFURLRef
+CFURLCreateFromFSRef (CFAllocatorRef alloc, const FSRefPtr fsRef)
+{
+	char path[4096];
+	struct stat st;
+	Boolean isDir = false;
+	
+	if (FSRefMakePath(fsRef, (uint8_t*) path, sizeof(path)))
+		return NULL;
+	
+	if (stat(path, &st))
+		isDir = S_ISDIR(st.st_mode);
+	
+	return CFURLCreateFromFileSystemRepresentation(alloc,path, strlen(path), isDir);
+}
+
+Boolean CFURLGetFSRef(CFURLRef urlref, FSRefPtr fsref)
+{
+	char* buf;
+	CFIndex len;
+	CFStringRef sref = CFURLCopyFileSystemPath(urlref, kCFURLPOSIXPathStyle);
+	Boolean rv;
+
+	if (!sref)
+		return false;
+
+	len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(sref), kCFStringEncodingUTF8);
+	buf = malloc(len + 1);
+
+	if (!CFStringGetCString(sref, buf, len, kCFStringEncodingUTF8))
+	{
+		free(buf);
+		return false;
+	}
+
+	CFRelease(sref);
+
+	rv = FSPathMakeRef((uint8_t*) buf, fsref, NULL) == 0;
+	
+	free(buf);
+	return rv;
+}
+
+#endif
+

@@ -272,10 +272,6 @@ CFURLCreateFromFileSystemRepresentationRelativeToBase (CFAllocatorRef alloc,
                                                        Boolean isDirectory,
                                                        CFURLRef baseURL);
 
-#if 0                           /* No FSRef support */
-CF_EXPORT CFURLRef
-CFURLCreateFromFSRef (CFAllocatorRef alloc, const struct FSRef *fsRef);
-#endif
 
 CF_EXPORT CFURLRef
 CFURLCreateWithBytes (CFAllocatorRef alloc, const UInt8 * bytes, CFIndex length,
