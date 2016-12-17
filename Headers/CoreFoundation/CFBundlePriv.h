@@ -4,6 +4,10 @@
 
 CF_EXTERN_C_BEGIN
 
+/* For Code Signing */
+CF_EXPORT
+const CFStringRef _kCFBundleResourceSpecificationKey;
+
 CF_EXPORT
 const CFStringRef _kCFBundlePackageTypeKey;
 CF_EXPORT
@@ -79,6 +83,16 @@ CFBundleRef _CFBundleCreateWithExecutableURLIfMightBeBundle(CFAllocatorRef alloc
 
 CF_EXPORT
 CFStringRef _CFBundleCopyMainBundleExecutableURL(Boolean* isRealBundle);
+
+/* For Code Signing */
+
+// This function is obsolete. Use CFBundleCreate instead.
+CF_EXPORT
+CFBundleRef _CFBundleCreateIfMightBeBundle(CFAllocatorRef allocator, CFURLRef url);
+
+// This function is for code signing only. Do not use this function.
+CF_EXPORT
+CFBundleRef _CFBundleCreateWithExecutableURLIfMightBeBundle(CFAllocatorRef allocator, CFURLRef url);
 
 CF_EXTERN_C_END
 

@@ -433,7 +433,34 @@ CF_EXPORT void CFRelease (CFTypeRef cf);
 CF_EXPORT CFTypeRef CFRetain (CFTypeRef cf);
 /** \} */
 
+#if __has_attribute(objc_bridge)
 
+#ifdef __OBJC__
+@class NSArray;
+@class NSAttributedString;
+@class NSString;
+@class NSNull;
+@class NSCharacterSet;
+@class NSData;
+@class NSDate;
+@class NSTimeZone;
+@class NSDictionary;
+@class NSError;
+@class NSLocale;
+@class NSNumber;
+@class NSNumber;
+@class NSSet;
+@class NSURL;
+#endif
+
+#define CF_BRIDGED_TYPE(T)		__attribute__((objc_bridge(T)))
+#define CF_BRIDGED_MUTABLE_TYPE(T)	__attribute__((objc_bridge_mutable(T)))
+#define CF_RELATED_TYPE(T,C,I)		__attribute__((objc_bridge_related(T,C,I)))
+#else
+#define CF_BRIDGED_TYPE(T)
+#define CF_BRIDGED_MUTABLE_TYPE(T)
+#define CF_RELATED_TYPE(T,C,I)
+#endif
 
 /** \defgroup CFNullRef CFNull Reference
     \{
