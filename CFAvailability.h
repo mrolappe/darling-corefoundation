@@ -83,6 +83,8 @@
 #define __NSi_10_10 introduced=10.10
 #define __NSi_10_10_2 introduced=10.10.2
 #define __NSi_10_10_3 introduced=10.10.3
+#define __NSi_10_11 introduced=10.11
+#define __NSi_10_12 introduced=10.12
 
 #define __NSd_2_0 ,deprecated=2.0
 #define __NSd_2_1 ,deprecated=2.1
@@ -117,6 +119,8 @@
 #define __NSd_10_10 ,deprecated=10.10
 #define __NSd_10_10_2 ,deprecated=10.10.2
 #define __NSd_10_10_3 ,deprecated=10.10.3
+#define __NSd_10_11 ,deprecated=10.11
+#define __NSd_10_12 ,deprecated=10.12
 
 #define __NSi_NA unavailable
 #define __NSd_NA

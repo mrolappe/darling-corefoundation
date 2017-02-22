@@ -45,6 +45,7 @@
 #include <CoreFoundation/CFStringEncodingExt.h>
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <limits.h>
+#include <objc/runtime.h>
 
 // NOTE: miscellaneous declarations are at the end
 
@@ -581,6 +582,58 @@ CF_INLINE UInt64 __CFReadTSR(void) {
 
 
 CF_EXTERN_C_END
+
+#ifdef __OBJC__
+#import <Foundation/Foundation.h>
+
+extern id _objc_rootAutorelease(id obj);
+
+static inline id ___CFAllocateObject2(Class cls, size_t extraBytes) {
+    id obj = class_createInstance(cls, extraBytes);
+    if (obj == NULL) {
+        // Good luck: it couldnt allocate room for one measly object, yet this is going to allocate atleast 2 (and probably a few more underneath)     
+        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("Could not allocate class %s"), class_getName(cls));
+        reason = (CFStringRef)_objc_rootAutorelease((id)reason);
+        @throw [NSException exceptionWithName:NSMallocException reason:(NSString *)reason userInfo:NULL];
+    }
+    return obj;
+}
+
+static inline id ___CFAllocateObject(Class cls) {
+    return ___CFAllocateObject2(cls, 0);
+}
+
+@interface NSCalendar (CoreFoundation)
+- (CFRange)_minimumRangeOfUnit:(CFCalendarUnit)unit;
+- (CFRange)_maximumRangeOfUnit:(CFCalendarUnit)unit;
+- (CFRange)_rangeOfUnit:(CFCalendarUnit)smallerUnit inUnit:(CFCalendarUnit)biggerUnit forAT:(CFAbsoluteTime)at;
+@end
+
+@interface NSStream (CoreFoundation)
+- (CFStreamError)_cfStreamError;
+- (void)_unscheduleFromCFRunLoop:(CFRunLoopRef)runLoop forMode:(CFStringRef)mode;
+- (void)_scheduleInCFRunLoop:(CFRunLoopRef)runLoop forMode:(CFStringRef)mode;
+@end
+
+@interface NSInputStream (CoreFoundation)
+- (BOOL)_setCFClientFlags:(CFOptionFlags)flags callback:(CFReadStreamClientCallBack)callback context:(CFStreamClientContext *)context;
+@end
+
+@interface NSOutputStream (CoreFoundation)
+- (BOOL)_setCFClientFlags:(CFOptionFlags)flags callback:(CFWriteStreamClientCallBack)callback context:(CFStreamClientContext *)context;
+@end
+
+@interface NSTimer (CoreFoundation)
+- (CFAbsoluteTime)_cffireTime;
+@end
+
+@interface NSTimeZone (CoreFoundation)
+- (double)_daylightSavingTimeOffsetForAbsoluteTime:(double)at;
+- (double)_nextDaylightSavingTimeTransitionAfterAbsoluteTime:(double)at;
+@end
+
+
+#endif
 
 #endif /* ! __COREFOUNDATION_FORFOUNDATIONONLY__ */
 

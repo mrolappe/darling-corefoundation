@@ -132,6 +132,10 @@ CF_INLINE struct __CFArrayBucket *__CFArrayGetBucketsPtr(CFArrayRef array) {
     return NULL;
 }
 
+CF_EXPORT Boolean _CFArrayIsMutable(CFArrayRef array) {
+    return __CFArrayGetType(array) != __kCFArrayImmutable;
+}
+
 /* This shouldn't be called if the array count is 0. */
 CF_INLINE struct __CFArrayBucket *__CFArrayGetBucketAtIndex(CFArrayRef array, CFIndex idx) {
     switch (__CFArrayGetType(array)) {
