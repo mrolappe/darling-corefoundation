@@ -8,7 +8,6 @@
 #import "NSBlock.h"
 #import <dispatch/dispatch.h>
 #import <objc/runtime.h>
-#include "debug.h"
 
 extern Class objc_initializeClassPair(Class superclass_gen, const char *name, Class cls_gen, Class meta_gen);
 

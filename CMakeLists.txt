@@ -3,6 +3,7 @@ project(corefoundation)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -fblocks -fconstant-cfstrings -fexceptions \
 	-Wno-bridge-cast \
 	-include ${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation_Prefix.h \
+	-include ${CMAKE_CURRENT_SOURCE_DIR}/macros.h \
 	-mmacosx-version-min=10.10")
 
 include(darling_framework)
@@ -26,7 +27,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_SOURCE_DIR}/src/external/cfnetwork/include
 	${CMAKE_SOURCE_DIR}/src/external/foundation/include
 	${CMAKE_SOURCE_DIR}/src/external/foundation/src
-	${CMAKE_SOURCE_DIR}/src/libmalloc/include)
+	${CMAKE_SOURCE_DIR}/src/external/coregraphics/Headers
+	${CMAKE_SOURCE_DIR}/src/libmalloc/include
+)
 
 add_definitions(-DCF_BUILDING_CF
 	-DDEPLOYMENT_TARGET_MACOSX=1
@@ -98,6 +101,7 @@ set(cf_sources
 	CFStringEncodingDatabase.c
 	CFStringEncodings.c
 	CFStringScanner.c
+	CFStringTokenizer.c
 	CFStringUtilities.c
 	CFSystemDirectories.c
 	CFTimeZone.c
@@ -138,6 +142,7 @@ set(cf_sources
 	NSCharacterSet.m
 	NSInputStream.m
 	NSInvocation.m
+	NSInvoke-x86.S
 	NSLocale.m
 	NSMessageBuilder.m
 	NSMethodSignature.m
@@ -157,9 +162,9 @@ set(cf_sources
 	NSTimeZone.m
 	NSURL.m
 	NSZombie.m
-	cifframe.m
-	GSFFIInvocation.m
-	GSObjCRuntime.m
+	CFForwardingPrep.S
+	FoundationExceptions.m
+	CFXPCBridge.c
 )
 
 add_framework(CoreFoundation
@@ -172,7 +177,6 @@ add_framework(CoreFoundation
 		objc
 		system
 		icucore
-		ffi
 	LINK_FLAGS
 		"-Wl,-init,___CFInitialize \
 		-Wl,-compatibility_version,150 \
@@ -183,4 +187,8 @@ add_framework(CoreFoundation
 		-Wl,-sectcreate,__UNICODE,__data,${CMAKE_CURRENT_SOURCE_DIR}/CFUnicodeData-L.mapping \
 		-Wl,-segprot,__UNICODE,r,r"
 )
+
+add_darling_executable(plconvert plconvert.c)
+target_link_libraries(plconvert system CoreFoundation)
+install(TARGETS plconvert DESTINATION libexec/darling/usr/bin)
 

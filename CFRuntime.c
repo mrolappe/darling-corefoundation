@@ -903,6 +903,10 @@ void __CFInitialize(void) {
     if (!__CFInitialized && !__CFInitializing) {
         __CFInitializing = 1;
 
+#ifdef __i386__
+    __exceptionInit();
+#endif
+
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR
         if (!pthread_main_np()) HALT;   // CoreFoundation must be initialized on the main thread
 #endif

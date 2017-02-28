@@ -19,7 +19,6 @@
 #import "NSBasicHash.h"
 #import "NSFastEnumerationEnumerator.h"
 #import "NSObjectInternal.h"
-#include "debug.h"
 
 @interface __NSPlaceholderOrderedSet : NSMutableOrderedSet
 + (id)mutablePlaceholder;

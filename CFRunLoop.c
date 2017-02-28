@@ -1459,6 +1459,17 @@ CF_EXPORT CFTypeRef _CFRunLoopGet2b(CFRunLoopRef rl) {
     return rl->_counterpart;
 }
 
+CF_EXPORT CFTypeRef _CFRunLoopSet2(CFRunLoopRef rl, CFTypeRef (*counterpartProvider)(CFRunLoopRef)) {
+    CFTypeRef ret = NULL;
+    __CFLock(&loopsLock);
+    if (rl->_counterpart == NULL) {
+        rl->_counterpart = counterpartProvider(rl);
+    }
+    ret = rl->_counterpart;
+    __CFUnlock(&loopsLock);
+    return ret;
+}
+
 #if DEPLOYMENT_TARGET_MACOSX
 void _CFRunLoopSetCurrent(CFRunLoopRef rl) {
     if (pthread_main_np()) return;

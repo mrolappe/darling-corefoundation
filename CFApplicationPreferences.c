@@ -671,3 +671,14 @@ void _CFApplicationPreferencesRemoveDomain(_CFApplicationPreferences *self, CFPr
     updateDictRep(self);
     __CFUnlock(&__CFApplicationPreferencesLock);
 }
+
+CFDictionaryRef _CFPrefsCopyAppDictionary(_CFApplicationPreferences *prefs) {
+    CFDictionaryRef retVal = NULL;
+    __CFLock(&__CFApplicationPreferencesLock);
+    CFPreferencesDomainRef applicationDomain = _CFPreferencesStandardDomain(prefs->_appName, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+    if (applicationDomain) {
+        retVal = _CFPreferencesDomainDeepCopyDictionary(applicationDomain);
+    }
+    __CFUnlock(&__CFApplicationPreferencesLock);
+    return retVal;
+}

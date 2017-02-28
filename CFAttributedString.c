@@ -8,7 +8,7 @@
 #include <CoreFoundation/CFAttributedString.h>
 #include "CFRuntime.h"
 #include "CFInternal.h"
-#include "debug.h"
+#include "macros.h"
 
 typedef struct
 {
