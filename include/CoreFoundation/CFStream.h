@@ -129,6 +129,9 @@ const CFStringRef kCFStreamPropertySocketRemoteHostName;
 CF_EXPORT
 const CFStringRef kCFStreamPropertySocketRemotePortNumber;
 
+CF_EXPORT
+const CFStringRef kCFStreamPropertySourceApplication;
+
 CF_IMPLICIT_BRIDGING_DISABLED
 /* Socket streams; the returned streams are paired such that they use the same socket; pass NULL if you want only the read stream or the write stream */
 CF_EXPORT
