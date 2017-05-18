@@ -35,8 +35,8 @@
 static void __NSForwardSignatureError() { __builtin_trap(); }
 
 struct objc_sendv_margs {
-    int a[4];
-    int stackArgs[];
+    uintptr_t a[4];
+    uintptr_t stackArgs[];
 };
 
 id ___forwarding___(struct objc_sendv_margs *args, void *returnStorage)
