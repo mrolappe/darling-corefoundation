@@ -566,12 +566,51 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean (^fileHan
 #define __CFMaxRuntimeTypes	65535
 #define __CFRuntimeClassTableSize 1024
 
+extern uintptr_t __CFRuntimeObjCClassTable[];
+
 extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 
+#ifdef DARLING
+
+#if __LP64__
+#define CF_IS_TAGGED_OBJ(PTR)	((uintptr_t)(PTR) & 0x1)
+#define CF_TAGGED_OBJ_TYPE(PTR)	((uintptr_t)(PTR) & 0xF)
+#else
+#define CF_IS_TAGGED_OBJ(PTR)	0
+#define CF_TAGGED_OBJ_TYPE(PTR)	0
+#endif
+
+#define CF_OBJC_FUNCDISPATCHV(typeID, ret, obj, ...) \
+_Pragma("clang diagnostic push") \
+_Pragma("clang diagnostic ignored \"-Wreturn-type\"") \
+_Pragma("clang diagnostic ignored \"-Wobjc-method-access\"") \
+_Pragma("clang diagnostic ignored \"-Wincompatible-pointer-types\"") \
+if (CF_IS_OBJC(typeID, obj)) { \
+    return (ret)[(id)obj __VA_ARGS__]; \
+} \
+_Pragma("clang diagnostic pop")
+
+#define CF_OBJC_CALLV(obj, ...) [obj __VA_ARGS__]
+
+#define CF_IS_OBJC(typeID, obj) ({ \
+	Class cls = object_getClass((id)obj); \
+	Boolean isObjc = false; \
+	if (__CFConstantStringClassReferencePtr != cls) { \
+		isObjc = (CF_IS_TAGGED_OBJ(obj) || (typeID < __CFRuntimeClassTableSize && cls != (Class)__CFRuntimeObjCClassTable[typeID])); \
+	} \
+	isObjc; \
+})
+
+CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
+    return (typeID < __CFRuntimeClassTableSize) ? __CFRuntimeObjCClassTable[typeID] : 0;
+}
+
+#else
 #define CF_OBJC_FUNCDISPATCHV(typeID, obj, ...) do { } while (0)
 #define CF_OBJC_CALLV(obj, ...) (0)
 #define CF_IS_OBJC(typeID, obj) (0)
 #define __CFISAForTypeID(t) (0)
+#endif
 
 /* See comments in CFBase.c
 */

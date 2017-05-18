@@ -1,1 +1,1 @@
-include/CoreFoundation/./CFInternal.h
+include/CoreFoundation/CFInternal.h

@@ -170,6 +170,7 @@ CFStringRef CFStringConvertEncodingToIANACharSetName(CFStringEncoding encoding) 
     return name;
 }
 
+#ifndef __OBJC__
 enum {
     NSASCIIStringEncoding = 1,		/* 0..127 only */
     NSNEXTSTEPStringEncoding = 2,
@@ -191,6 +192,7 @@ enum {
 
     NSProprietaryStringEncoding = 65536    /* Installation-specific encoding */
 };
+#endif
 
 #define NSENCODING_MASK (1 << 31)
 

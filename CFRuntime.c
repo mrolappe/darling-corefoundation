@@ -336,6 +336,7 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
 	*(CFAllocatorRef *)((char *)memory) = (CFAllocatorRef)CFRetain(realAllocator);
 	memory = (CFRuntimeBase *)((char *)memory + sizeof(CFAllocatorRef));
     }
+    memory->_cfisa = __CFISAForTypeID(typeID);
     uint32_t rc = 0;
 #if __LP64__
     if (!kCFUseCollectableAllocator || (1 && 1)) {
@@ -355,7 +356,7 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
 #endif
     uint32_t *cfinfop = (uint32_t *)&(memory->_cfinfo);
     *cfinfop = (uint32_t)((rc << 24) | (customRC ? 0x800000 : 0x0) | ((uint32_t)typeID << 8) | (usesSystemDefaultAllocator ? 0x80 : 0x00));
-    memory->_cfisa = 0;
+    // memory->_cfisa = 0;
     if (NULL != cls->init) {
 	(cls->init)(memory);
     }
@@ -372,12 +373,13 @@ void _CFRuntimeInitStaticInstance(void *ptr, CFTypeID typeID) {
         return;
     }
     CFRuntimeBase *memory = (CFRuntimeBase *)ptr;
+    memory->_cfisa = __CFISAForTypeID(typeID);
     uint32_t *cfinfop = (uint32_t *)&(memory->_cfinfo);
     *cfinfop = (uint32_t)(((customRC ? 0xFF : 0) << 24) | (customRC ? 0x800000 : 0x0) | ((uint32_t)typeID << 8) | 0x80);
 #if __LP64__
     memory->_rc = customRC ? 0xFFFFFFFFU : 0x0;
 #endif
-    memory->_cfisa = 0;
+    // memory->_cfisa = 0;
     if (NULL != cfClass->init) {
        (cfClass->init)(memory);
     }
@@ -405,6 +407,11 @@ void _CFRuntimeSetInstanceTypeID(CFTypeRef cf, CFTypeID newTypeID) {
 
 CF_PRIVATE void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID) {
     _CFRuntimeSetInstanceTypeID(cf, newTypeID);
+    if (newTypeID < __CFRuntimeClassTableSize) {
+        Class c = (Class)__CFRuntimeObjCClassTable[newTypeID];
+        if (c != NULL)
+            object_setClass(cf, c);
+    }
 }
 
 
@@ -869,6 +876,17 @@ CF_PRIVATE Boolean __CFProcessIsRestricted() {
 #define kNilPthreadT  (pthread_t)0
 #endif
 
+void _CFRuntimeBridgeClasses(CFTypeID type, const char *name) {
+    static OSSpinLock lock = OS_SPINLOCK_INIT;
+    OSSpinLockLock(&lock);
+    Class cls = (Class)objc_getClass(name);
+    if (cls != Nil) {
+        __CFRuntimeObjCClassTable[type] = (uintptr_t)cls;
+    } else {
+        DEBUG_BREAK();
+    }
+    OSSpinLockUnlock(&lock);
+}
 
 #undef kCFUseCollectableAllocator
 CF_EXPORT bool kCFUseCollectableAllocator;
@@ -980,27 +998,62 @@ void __CFInitialize(void) {
 	    __NSRetainCounters[idx].lock = CFLockInit;
 	}
 
-        /*** _CFRuntimeCreateInstance() can finally be called generally after this line. ***/
+        memcpy(__CFConstantStringClassReference, (void *)objc_getClass("__NSCFConstantString"), sizeof(__CFConstantStringClassReference));
+        __CFConstantStringClassReferencePtr = &__CFConstantStringClassReference;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
+        class_setSuperclass(objc_getClass("__NSCFNumber"), objc_getClass("NSNumber"));
+        class_setSuperclass(objc_getClass("__NSCFCharacterSet"), objc_getClass("NSMutableCharacterSet"));
+        class_setSuperclass(objc_getClass("__NSCFBoolean"), objc_getClass("NSNumber"));
+        class_setSuperclass(objc_getClass("__NSCFError"), objc_getClass("NSError"));
+        class_setSuperclass(objc_getClass("__NSCFString"), objc_getClass("NSMutableString"));
+        class_setSuperclass(objc_getClass("__NSCFAttributedString"), objc_getClass("NSMutableAttributedString"));
+
+#pragma clang diagnostic pop
+
+        /*** _CFRuntimeCreateInstance() can finally be called generally after this line. ***/
         __CFRuntimeClassTableCount = 7;
         __CFStringInitialize();		// CFString's TypeID must be 0x7, now and forever
-    
+        _CFRuntimeBridgeClasses(CFStringGetTypeID(), "__NSCFString");
         __CFRuntimeClassTableCount = 16;
         CFNullGetTypeID();		// See above for hard-coding of this position
+        _CFRuntimeBridgeClasses(CFNullGetTypeID(), "NSNull");
+        object_setClass((id)kCFNull, objc_getClass("NSNull"));
         CFSetGetTypeID();		// See above for hard-coding of this position
+        _CFRuntimeBridgeClasses(CFSetGetTypeID(), "__NSCFSet");
+
         CFDictionaryGetTypeID();	// See above for hard-coding of this position
+        _CFRuntimeBridgeClasses(CFDictionaryGetTypeID(), "__NSCFDictionary");
+
         CFArrayGetTypeID();		// See above for hard-coding of this position
+        _CFRuntimeBridgeClasses(CFArrayGetTypeID(), "__NSCFArray");
+
         CFDataGetTypeID();		// See above for hard-coding of this position
+        _CFRuntimeBridgeClasses(CFDataGetTypeID(), "__NSCFData");
+
+        _CFRuntimeBridgeClasses(__CFRuntimeClassTableCount, "__NSCFBoolean");
         CFBooleanGetTypeID();		// See above for hard-coding of this position
+
+        _CFRuntimeBridgeClasses(__CFRuntimeClassTableCount, "__NSCFNumber");
         CFNumberGetTypeID();		// See above for hard-coding of this position
 
         CFBinaryHeapGetTypeID();
         CFBitVectorGetTypeID();
         __CFCharacterSetInitialize();
+        _CFRuntimeBridgeClasses(CFCharacterSetGetTypeID(), "__NSCFCharacterSet");
+
         CFStorageGetTypeID();
         CFErrorGetTypeID();
+        _CFRuntimeBridgeClasses(CFErrorGetTypeID(), "__NSCFError");
+
         CFTreeGetTypeID();
         CFURLGetTypeID();
+        _CFRuntimeBridgeClasses(CFURLGetTypeID(), "NSURL");
+
+        __CFAttributedStringInitialize();
+        _CFRuntimeBridgeClasses(CFAttributedStringGetTypeID(), "__NSCFAttributedString");
+        _CFRuntimeBridgeClasses(CFLocaleGetTypeID(), "__NSCFLocale");
         
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
         CFBundleGetTypeID();
@@ -1011,30 +1064,39 @@ void __CFInitialize(void) {
         CFPlugInInstanceGetTypeID();
 #endif
         CFUUIDGetTypeID();
+        _CFRuntimeBridgeClasses(CFUUIDGetTypeID(), "__NSConcreteUUID");
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
 	CFMessagePortGetTypeID();
 #endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
         CFMachPortGetTypeID();
+        _CFRuntimeBridgeClasses(CFMachPortGetTypeID(), "NSMachPort");
 #endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
         __CFStreamInitialize();
+        _CFRuntimeBridgeClasses(CFReadStreamGetTypeID(), "__NSCFInputStream");
+        _CFRuntimeBridgeClasses(CFWriteStreamGetTypeID(), "__NSCFOutputStream");
 #endif
 #if DEPLOYMENT_TARGET_WINDOWS
         CFWindowsNamedPipeGetTypeID();
 #endif
         
         CFDateGetTypeID();
+        _CFRuntimeBridgeClasses(CFDateGetTypeID(), "__NSDate");
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
         CFRunLoopGetTypeID();
         CFRunLoopObserverGetTypeID();
         CFRunLoopSourceGetTypeID();
         CFRunLoopTimerGetTypeID();
+        _CFRuntimeBridgeClasses(CFRunLoopTimerGetTypeID(), "__NSCFTimer");
 #endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         CFTimeZoneGetTypeID();
+        _CFRuntimeBridgeClasses(CFTimeZoneGetTypeID(), "__NSTimeZone");
+
         CFCalendarGetTypeID();
+        _CFRuntimeBridgeClasses(CFCalendarGetTypeID(), "__NSCFCalendar");
 #if DEPLOYMENT_TARGET_LINUX
         CFTimeZoneGetTypeID();
         CFCalendarGetTypeID();

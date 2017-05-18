@@ -1,9 +1,9 @@
 project(corefoundation)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -fblocks -fconstant-cfstrings -fexceptions \
-	-Wno-bridge-cast \
 	-include ${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation_Prefix.h \
 	-include ${CMAKE_CURRENT_SOURCE_DIR}/macros.h \
+	-Wno-bridge-cast \
 	-mmacosx-version-min=10.10")
 
 include(darling_framework)
@@ -41,7 +41,7 @@ add_definitions(-DCF_BUILDING_CF
 	-D__CONSTANT_STRINGS__=1
 )
 
-set(cf_sources
+set(cf_c_sources
 	CFApplicationPreferences.c
 	CFArray.c
 	CFAttributedString.c
@@ -122,6 +122,11 @@ set(cf_sources
 	CFXMLPreferencesDomain.c
 	CFXMLTree.c
 	CFURLEnumerator.c
+	CFXPCBridge.c
+)
+
+set(cf_sources
+	${cf_c_sources}
 	# CFStubs.m
 	NSArray.m
 	NSAttributedString.m
@@ -164,7 +169,6 @@ set(cf_sources
 	NSZombie.m
 	CFForwardingPrep.S
 	FoundationExceptions.m
-	CFXPCBridge.c
 )
 
 add_framework(CoreFoundation
@@ -187,6 +191,8 @@ add_framework(CoreFoundation
 		-Wl,-sectcreate,__UNICODE,__data,${CMAKE_CURRENT_SOURCE_DIR}/CFUnicodeData-L.mapping \
 		-Wl,-segprot,__UNICODE,r,r"
 )
+
+set_source_files_properties(${cf_c_sources} PROPERTIES COMPILE_FLAGS "-x objective-c")
 
 add_darling_executable(plconvert plconvert.c)
 target_link_libraries(plconvert system CoreFoundation)
