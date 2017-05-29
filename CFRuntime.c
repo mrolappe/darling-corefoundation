@@ -879,7 +879,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted() {
 void _CFRuntimeBridgeClasses(CFTypeID type, const char *name) {
     static OSSpinLock lock = OS_SPINLOCK_INIT;
     OSSpinLockLock(&lock);
-    Class cls = (Class)objc_getClass(name);
+    Class cls = (Class)objc_getFutureClass(name);
     if (cls != Nil) {
         __CFRuntimeObjCClassTable[type] = (uintptr_t)cls;
     } else {
@@ -1003,12 +1003,15 @@ void __CFInitialize(void) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-        class_setSuperclass(objc_getClass("__NSCFNumber"), objc_getClass("NSNumber"));
-        class_setSuperclass(objc_getClass("__NSCFCharacterSet"), objc_getClass("NSMutableCharacterSet"));
-        class_setSuperclass(objc_getClass("__NSCFBoolean"), objc_getClass("NSNumber"));
-        class_setSuperclass(objc_getClass("__NSCFError"), objc_getClass("NSError"));
-        class_setSuperclass(objc_getClass("__NSCFString"), objc_getClass("NSMutableString"));
-        class_setSuperclass(objc_getClass("__NSCFAttributedString"), objc_getClass("NSMutableAttributedString"));
+        if (objc_getClass("NSNumber") != NULL)
+        {
+            class_setSuperclass(objc_getClass("__NSCFNumber"), objc_getClass("NSNumber"));
+            class_setSuperclass(objc_getClass("__NSCFCharacterSet"), objc_getClass("NSMutableCharacterSet"));
+            class_setSuperclass(objc_getClass("__NSCFBoolean"), objc_getClass("NSNumber"));
+            class_setSuperclass(objc_getClass("__NSCFError"), objc_getClass("NSError"));
+            class_setSuperclass(objc_getClass("__NSCFString"), objc_getClass("NSMutableString"));
+            class_setSuperclass(objc_getClass("__NSCFAttributedString"), objc_getClass("NSMutableAttributedString"));
+        }
 
 #pragma clang diagnostic pop
 
@@ -1064,6 +1067,7 @@ void __CFInitialize(void) {
         CFPlugInInstanceGetTypeID();
 #endif
         CFUUIDGetTypeID();
+        // This isn't normally bridged!
         _CFRuntimeBridgeClasses(CFUUIDGetTypeID(), "__NSConcreteUUID");
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
 	CFMessagePortGetTypeID();
