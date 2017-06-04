@@ -85,6 +85,7 @@
 #define __NSi_10_10_3 introduced=10.10.3
 #define __NSi_10_11 introduced=10.11
 #define __NSi_10_12 introduced=10.12
+#define __NSi_10_12_1 introduced=10.12.1
 
 #define __NSd_2_0 ,deprecated=2.0
 #define __NSd_2_1 ,deprecated=2.1
@@ -121,6 +122,7 @@
 #define __NSd_10_10_3 ,deprecated=10.10.3
 #define __NSd_10_11 ,deprecated=10.11
 #define __NSd_10_12 ,deprecated=10.12
+#define __NSd_10_12_1 ,deprecated=10.12.1
 
 #define __NSi_NA unavailable
 #define __NSd_NA
@@ -224,6 +226,14 @@ CF_ENUM(CFIndex) {
 };
 */
 #define CF_ENUM(...) __CF_ENUM_GET_MACRO(__VA_ARGS__, __CF_NAMED_ENUM, __CF_ANON_ENUM, )(__VA_ARGS__)
+
+#if __has_attribute(swift_wrapper)
+#define _CF_TYPED_ENUM __attribute__((swift_wrapper(enum)))
+#else
+#define _CF_TYPED_ENUM
+#endif
+
+#define CF_STRING_ENUM _CF_TYPED_ENUM
 
 // Extension availability macros
 #define CF_EXTENSION_UNAVAILABLE(_msg)      __OS_EXTENSION_UNAVAILABLE(_msg)
