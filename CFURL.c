@@ -4964,3 +4964,75 @@ CFURLRef CFURLCreateFilePathURL(CFAllocatorRef alloc, CFURLRef url, CFErrorRef *
 
 CFURLRef CFURLCreateFileReferenceURL(CFAllocatorRef alloc, CFURLRef url, CFErrorRef *error) { return NULL; }
 
+#include <CoreServices/FileManager.h>
+#include <sys/stat.h>
+#include <dlfcn.h>
+
+CFURLRef
+CFURLCreateFromFSRef (CFAllocatorRef alloc, const FSRefPtr fsRef)
+{
+    char path[4096];
+    struct stat st;
+    Boolean isDir = false;
+    static OSStatus (*FSRefMakePath_ptr)(const struct FSRef *ref, UInt8 *path, UInt32 pathBufferSize) = NULL;
+
+    if (!FSRefMakePath_ptr)
+    {
+        void* lib = dlopen("/System/Library/Frameworks/CoreServices.framework/CoreServices", RTLD_GLOBAL);
+        if (!lib)
+            return NULL;
+
+        *((void**) &FSRefMakePath_ptr) = dlsym(lib, "FSRefMakePath");
+
+        if (!FSRefMakePath_ptr)
+            return NULL;
+    }
+
+    if (FSRefMakePath_ptr(fsRef, (uint8_t*) path, sizeof(path)))
+        return NULL;
+
+    if (stat(path, &st))
+        isDir = S_ISDIR(st.st_mode);
+
+    return CFURLCreateFromFileSystemRepresentation(alloc,path, strlen(path), isDir);
+}
+
+Boolean CFURLGetFSRef(CFURLRef urlref, FSRefPtr fsref)
+{
+    char* buf;
+    CFIndex len;
+    CFStringRef sref = CFURLCopyFileSystemPath(urlref, kCFURLPOSIXPathStyle);
+    Boolean rv;
+    static OSStatus (*FSPathMakeRef_ptr)(const UInt8 *path, struct FSRef *ref, Boolean *isDirectory);
+
+    if (!sref)
+        return false;
+
+    if (!FSPathMakeRef_ptr)
+    {
+        void* lib = dlopen("/System/Library/Frameworks/CoreServices.framework/CoreServices", RTLD_GLOBAL);
+        if (!lib)
+            return false;
+
+        *((void**) &FSPathMakeRef_ptr) = dlsym(lib, "FSPathMakeRef");
+        if (!FSPathMakeRef_ptr)
+            return false;
+    }
+
+    len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(sref), kCFStringEncodingUTF8);
+    buf = malloc(len + 1);
+
+    if (!CFStringGetCString(sref, buf, len, kCFStringEncodingUTF8))
+    {
+        free(buf);
+        return false;
+    }
+
+    CFRelease(sref);
+
+    rv = FSPathMakeRef_ptr((uint8_t*) buf, fsref, NULL) == 0;
+
+    free(buf);
+    return rv;
+}
+
