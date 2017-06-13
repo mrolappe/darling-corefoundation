@@ -90,6 +90,8 @@
     #include <libkern/OSTypes.h>
   #endif
 
+#include <MacTypes.h>
+
 #if !defined(__MACTYPES__)
 #if !defined(_OS_OSTYPES_H)
     typedef unsigned char           Boolean;
