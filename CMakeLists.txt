@@ -1,35 +1,12 @@
 project(corefoundation)
 
+include(darling_framework)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -fblocks -fconstant-cfstrings -fexceptions \
 	-include ${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation_Prefix.h \
 	-include ${CMAKE_CURRENT_SOURCE_DIR}/macros.h \
 	-Wno-bridge-cast \
 	-mmacosx-version-min=10.10")
-
-include(darling_framework)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/src/external/libclosure
-	${CMAKE_SOURCE_DIR}/src/external/libpthread/private
-	${CMAKE_SOURCE_DIR}/src/external/libdispatch/include
-	${CMAKE_SOURCE_DIR}/src/external/libdispatch
-	${CMAKE_SOURCE_DIR}/src/external/icu/icuSources/common
-	${CMAKE_SOURCE_DIR}/src/external/icu/icuSources/i18n
-	${CMAKE_SOURCE_DIR}/src/launchd/liblaunch
-	${CMAKE_SOURCE_DIR}/src/kernel/libsyscall
-	${CMAKE_SOURCE_DIR}/src/libremovefile
-	${CMAKE_SOURCE_DIR}/src/libc/gen
-	${CMAKE_SOURCE_DIR}/src/libmalloc/include/malloc
-	${CMAKE_SOURCE_DIR}/src/libffi/include
-	${CMAKE_SOURCE_DIR}/src/external/security/include
-	${CMAKE_SOURCE_DIR}/src/libc/stdtime/FreeBSD
-	${CMAKE_SOURCE_DIR}/src/external/syslog/libsystem_asl.tproj/include
-	${CMAKE_SOURCE_DIR}/src/external/objc4/runtime
-	${CMAKE_SOURCE_DIR}/src/external/cfnetwork/include
-	${CMAKE_SOURCE_DIR}/src/external/foundation/include
-	${CMAKE_SOURCE_DIR}/src/external/foundation/src
-	${CMAKE_SOURCE_DIR}/src/external/coregraphics/Headers
-	${CMAKE_SOURCE_DIR}/src/libmalloc/include
-)
 
 add_definitions(-DCF_BUILDING_CF
 	-DDEPLOYMENT_TARGET_MACOSX=1
