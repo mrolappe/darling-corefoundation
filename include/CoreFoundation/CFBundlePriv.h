@@ -298,6 +298,9 @@ CFBundleRefNum _CFBundleOpenBundleResourceFork(CFBundleRef bundle);	// deprecate
 CF_EXPORT
 void _CFBundleCloseBundleResourceFork(CFBundleRef bundle);	// deprecated in favor of CFBundleCloseBundleResourceMap
 
+CF_EXPORT
+CFBundleRef _CFBundleCreateUnique(CFAllocatorRef allocator, CFURLRef bundleURL) CF_AVAILABLE(10_11, 9_0);
+
 CF_EXTERN_C_END
 
 #endif /* ! __COREFOUNDATION_CFBUNDLEPRIV__ */
