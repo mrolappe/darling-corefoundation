@@ -360,6 +360,8 @@ CONST_STRING_DECL(kCFStreamPropertySocketRemotePortNumber, "kCFStreamPropertySoc
 CONST_STRING_DECL(kCFStreamPropertyDataWritten, "kCFStreamPropertyDataWritten")
 CONST_STRING_DECL(kCFStreamPropertyAppendToFile, "kCFStreamPropertyAppendToFile")
 
+CONST_STRING_DECL(kCFStreamPropertySourceApplication, "kCFStreamPropertySourceApplication")
+
 CF_PRIVATE void __CFStreamInitialize(void) {
     static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{ __kCFReadStreamTypeID = _CFRuntimeRegisterClass(&__CFReadStreamClass); __kCFWriteStreamTypeID = _CFRuntimeRegisterClass(&__CFWriteStreamClass); });
