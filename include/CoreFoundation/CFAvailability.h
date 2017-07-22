@@ -240,4 +240,10 @@ CF_ENUM(CFIndex) {
 #define CF_EXTENSION_UNAVAILABLE_MAC(_msg)  __OSX_EXTENSION_UNAVAILABLE(_msg)
 #define CF_EXTENSION_UNAVAILABLE_IOS(_msg)  __IOS_EXTENSION_UNAVAILABLE(_msg)
 
+#if __has_feature(attribute_availability_swift)
+#define CF_SWIFT_UNAVAILABLE(_msg) __attribute__((availability(swift, unavailable, message=_msg)))
+#else
+#define CF_SWIFT_UNAVAILABLE(_msg)
+#endif
+
 #endif // __COREFOUNDATION_CFAVAILABILITY__
