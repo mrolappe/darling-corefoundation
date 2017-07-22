@@ -142,13 +142,13 @@
 
 #if !defined(CF_EXPORT)
 #if defined(CF_BUILDING_CF) && defined(__cplusplus)
-#define CF_EXPORT extern "C" __declspec(dllexport) 
+#define CF_EXPORT extern "C" __declspec(dllexport)
 #elif defined(CF_BUILDING_CF) && !defined(__cplusplus)
-#define CF_EXPORT extern __declspec(dllexport) 
+#define CF_EXPORT extern __declspec(dllexport)
 #elif defined(__cplusplus)
-#define CF_EXPORT extern "C" __declspec(dllimport) 
+#define CF_EXPORT extern "C" __declspec(dllimport)
 #else
-#define CF_EXPORT extern __declspec(dllimport) 
+#define CF_EXPORT extern __declspec(dllimport)
 #endif
 #endif
 
@@ -203,7 +203,7 @@ CF_EXTERN_C_BEGIN
 #endif
 #endif
 
-// Marks functions which return a CF type that may need to be retained by the caller but whose names are not consistent with CoreFoundation naming rules. The recommended fix to this is to rename the functions, but this macro can be used to let the clang static analyzer know of any exceptions that cannot be fixed. 
+// Marks functions which return a CF type that may need to be retained by the caller but whose names are not consistent with CoreFoundation naming rules. The recommended fix to this is to rename the functions, but this macro can be used to let the clang static analyzer know of any exceptions that cannot be fixed.
 // This macro is ONLY to be used in exceptional circumstances, not to annotate functions which conform to the CoreFoundation naming rules.
 #ifndef CF_RETURNS_NOT_RETAINED
 #if __has_feature(attribute_cf_returns_not_retained)
@@ -492,14 +492,14 @@ const CFAllocatorRef kCFAllocatorMallocZone;
 
 /* Null allocator which does nothing and allocates no memory. This allocator
    is useful as the "bytesDeallocator" in CFData or "contentsDeallocator"
-   in CFString where the memory should not be freed. 
+   in CFString where the memory should not be freed.
 */
 CF_EXPORT
 const CFAllocatorRef kCFAllocatorNull;
 
 /* Special allocator argument to CFAllocatorCreate() which means
    "use the functions given in the context to allocate the allocator
-   itself as well". 
+   itself as well".
 */
 CF_EXPORT
 const CFAllocatorRef kCFAllocatorUseContext;
@@ -515,7 +515,7 @@ typedef struct {
     CFIndex				version;
     void *				info;
     CFAllocatorRetainCallBack		retain;
-    CFAllocatorReleaseCallBack		release;        
+    CFAllocatorReleaseCallBack		release;
     CFAllocatorCopyDescriptionCallBack	copyDescription;
     CFAllocatorAllocateCallBack		allocate;
     CFAllocatorReallocateCallBack	reallocate;
@@ -613,6 +613,48 @@ CF_IMPLICIT_BRIDGING_DISABLED
 // This function is unavailable in ARC mode.
 CF_EXPORT
 CFTypeRef CFMakeCollectable(CFTypeRef cf) CF_AUTOMATED_REFCOUNT_UNAVAILABLE;
+
+#ifdef DARLING
+// normally, CFBase should import these from CoreGraphics,
+// but Cocotron's CoreGraphics defines these in CFBase.h,
+// and so we copy it to here
+
+#ifdef __LP64__
+typedef double CGFloat;
+#define CGFLOAT_MIN DBL_MIN
+#define CGFLOAT_MAX DBL_MAX
+#define CGFLOAT_SCAN "%lg"
+#else
+typedef float CGFloat;
+#define CGFLOAT_MIN FLT_MIN
+#define CGFLOAT_MAX FLT_MAX
+#define CGFLOAT_SCAN "%g"
+#endif
+
+typedef struct CGPoint {
+    CGFloat x;
+    CGFloat y;
+} CGPoint;
+
+typedef struct CGSize {
+    CGFloat width;
+    CGFloat height;
+} CGSize;
+
+typedef struct CGRect {
+    CGPoint origin;
+    CGSize size;
+} CGRect;
+
+// this one is from GNUstep Opal
+typedef enum CGRectEdge
+{
+  CGRectMinXEdge = 0,
+  CGRectMinYEdge = 1,
+  CGRectMaxXEdge = 2,
+  CGRectMaxYEdge = 3
+} CGRectEdge;
+#endif
 
 CF_EXTERN_C_END
 
