@@ -153,8 +153,7 @@ set(cf_sources
 	FoundationExceptions.m
 )
 
-add_framework(CoreFoundation
-	FAT
+add_separated_framework(CoreFoundation
 	CURRENT_VERSION
 	SOURCES
 		${cf_sources}
@@ -174,9 +173,13 @@ add_framework(CoreFoundation
 		-Wl,-segprot,__UNICODE,r,r"
 )
 
+set_property(TARGET CoreFoundation_i386 APPEND_STRING PROPERTY
+  LINK_FLAGS " -Wl,-reexported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/reexport_i386.exp")
+set_property(TARGET CoreFoundation_x86_64 APPEND_STRING PROPERTY
+  LINK_FLAGS " -Wl,-reexported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/reexport_x86_64.exp")
+
 set_source_files_properties(${cf_c_sources} PROPERTIES COMPILE_FLAGS "-x objective-c")
 
 add_darling_executable(plconvert plconvert.c)
-target_link_libraries(plconvert system CoreFoundation)
+target_link_libraries(plconvert system ${CoreFoundation})
 install(TARGETS plconvert DESTINATION libexec/darling/usr/bin)
-
