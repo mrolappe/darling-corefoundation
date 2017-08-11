@@ -181,5 +181,5 @@ set_property(TARGET CoreFoundation_x86_64 APPEND_STRING PROPERTY
 set_source_files_properties(${cf_c_sources} PROPERTIES COMPILE_FLAGS "-x objective-c")
 
 add_darling_executable(plconvert plconvert.c)
-target_link_libraries(plconvert system ${CoreFoundation})
+target_link_libraries(plconvert CoreFoundation)
 install(TARGETS plconvert DESTINATION libexec/darling/usr/bin)
