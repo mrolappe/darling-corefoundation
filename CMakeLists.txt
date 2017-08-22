@@ -148,6 +148,7 @@ set(cf_sources
 	NSTimer.m
 	NSTimeZone.m
 	NSURL.m
+    NSUserDefaults.m
 	NSZombie.m
 	CFForwardingPrep.S
 	FoundationExceptions.m
