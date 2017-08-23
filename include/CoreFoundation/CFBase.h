@@ -193,6 +193,12 @@ CF_EXTERN_C_BEGIN
 #define CF_ASSUME_NONNULL_BEGIN
 #define CF_ASSUME_NONNULL_END
 
+#if __has_attribute(noescape)
+#define CF_NOESCAPE __attribute__((noescape))
+#else
+#define CF_NOESCAPE
+#endif
+
 // Marks functions which return a CF type that needs to be released by the caller but whose names are not consistent with CoreFoundation naming rules. The recommended fix to this is to rename the functions, but this macro can be used to let the clang static analyzer know of any exceptions that cannot be fixed.
 // This macro is ONLY to be used in exceptional circumstances, not to annotate functions which conform to the CoreFoundation naming rules.
 #ifndef CF_RETURNS_RETAINED
