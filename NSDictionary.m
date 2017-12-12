@@ -182,11 +182,19 @@ CF_PRIVATE
 
 static CFDictionaryKeyCallBacks sNSCFDictionaryKeyCallBacks = {
     0,
-    &_NSCFCopy,
+    &_NSCFRetain2,
     &_NSCFRelease2,
     &_NSCFCopyDescription,
     &_NSCFEqual,
     &_NSCFHash
+};
+
+static CFDictionaryValueCallBacks sNSCFDictionaryValueCallBacks = {
+    0,
+    &_NSCFRetain2,
+    &_NSCFRelease2,
+    &_NSCFCopyDescription,
+    &_NSCFEqual
 };
 
 static __NSPlaceholderDictionary *mutablePlaceholder = nil;
@@ -280,7 +288,7 @@ SINGLETON_RR()
     if (self == mutablePlaceholder)
     {
         NSCapacityCheck(capacity, 0x40000000, @"Please rethink the size of the capacity of the dictionary you are creating: %d seems a bit exessive", capacity);
-        return (id)CFDictionaryCreateMutable(kCFAllocatorDefault, capacity, &sNSCFDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        return (id)CFDictionaryCreateMutable(kCFAllocatorDefault, capacity, &sNSCFDictionaryKeyCallBacks, &sNSCFDictionaryValueCallBacks);
     }
     else
     {
@@ -325,7 +333,7 @@ SINGLETON_RR()
 
     if (self == mutablePlaceholder)
     {
-        CFMutableDictionaryRef dict = CFDictionaryCreateMutable(kCFAllocatorDefault, cnt, &sNSCFDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        CFMutableDictionaryRef dict = CFDictionaryCreateMutable(kCFAllocatorDefault, cnt, &sNSCFDictionaryKeyCallBacks, &sNSCFDictionaryValueCallBacks);
         for (NSUInteger idx = 0; idx < cnt; idx++)
         {
             if ([(NSObject *)keys[idx] respondsToSelector:@selector(copyWithZone:)])
@@ -344,7 +352,7 @@ SINGLETON_RR()
     }
     else
     {
-        return (id)CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void **)objects, cnt, &sNSCFDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        return (id)CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void **)objects, cnt, &sNSCFDictionaryKeyCallBacks, &sNSCFDictionaryValueCallBacks);
     }
 }
 
