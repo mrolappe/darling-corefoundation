@@ -9,6 +9,44 @@
 // Must be rewritten to not use Foundation
 @implementation NSUserDefaults
 
++ (NSUserDefaults *)standardUserDefaults { return [[NSUserDefaults alloc] init]; }
++ (void)resetStandardUserDefaults {}
+
+- (id)init { return self; }
+- (id)initWithUser:(NSString *)username { return self; }
+- (id)objectForKey:(NSString *)key { return nil; }
+- (void)setObject:(id)value forKey:(NSString *)key {}
+- (void)removeObjectForKey:(NSString *)key {}
+- (NSString *)stringForKey:(NSString *)key { return nil; }
+- (NSArray *)arrayForKey:(NSString *)key { return nil; }
+- (NSDictionary *)dictionaryForKey:(NSString *)key { return nil; }
+- (NSData *)dataForKey:(NSString *)key { return nil; }
+- (NSArray *)stringArrayForKey:(NSString *)key { return nil; }
+- (NSInteger)integerForKey:(NSString *)key { return nil; }
+- (float)floatForKey:(NSString *)key { return 0.0; }
+- (double)doubleForKey:(NSString *)key { return 0.0; }
+- (BOOL)boolForKey:(NSString *)key { return false; }
+- (NSURL *)URLForKey:(NSString *)key { return nil; }
+- (void)setInteger:(NSInteger)value forKey:(NSString *)key {}
+- (void)setFloat:(float)value forKey:(NSString *)key {}
+- (void)setDouble:(double)value forKey:(NSString *)key {}
+- (void)setBool:(BOOL)value forKey:(NSString *)key {}
+- (void)setURL:(NSURL *)URL forKey:(NSString *)key {}
+- (void)registerDefaults:(NSDictionary *)registrationDictionary {}
+- (void)addSuiteNamed:(NSString *)suiteName {}
+- (void)removeSuiteNamed:(NSString *)suiteName {}
+- (NSDictionary *)dictionaryRepresentation { return nil; }
+- (NSArray *)volatileDomainNames { return nil; }
+- (NSDictionary *)volatileDomainForName:(NSString *)domainName { return nil; }
+- (void)setVolatileDomain:(NSDictionary *)domain forName:(NSString *)domainName {}
+- (void)removeVolatileDomainForName:(NSString *)domainName {}
+- (NSArray *)persistentDomainNames { return nil; }
+- (NSDictionary *)persistentDomainForName:(NSString *)domainName { return nil; }
+- (void)setPersistentDomain:(NSDictionary *)domain forName:(NSString *)domainName {}
+- (void)removePersistentDomainForName:(NSString *)domainName {}
+- (BOOL)synchronize { return false; }
+- (BOOL)objectIsForcedForKey:(NSString *)key { return false; }
+- (BOOL)objectIsForcedForKey:(NSString *)key inDomain:(NSString *)domain { return false; }
 @end
 
 
