@@ -210,6 +210,15 @@ static const NSUInteger kRemoveAllObjectsStackSize = 32;
 static __NSPlaceholderSet *mutablePlaceholder = nil;
 static __NSPlaceholderSet *immutablePlaceholder = nil;
 
+static CFSetCallBacks sNSCFSetCallBacks = {
+    0,
+    &_NSCFRetain2,
+    &_NSCFRelease2,
+    &_NSCFCopyDescription,
+    &_NSCFEqual,
+    &_NSCFHash
+};
+
 @implementation __NSPlaceholderSet
 
 + (id)immutablePlaceholder
@@ -249,7 +258,7 @@ SINGLETON_RR()
     if (self == mutablePlaceholder)
     {
         NSCapacityCheck(capacity, 0x40000000, @"Please rethink the size of the capacity of the set you are creating: %d seems a bit exessive", capacity);
-        return (id)CFSetCreateMutable(kCFAllocatorDefault, capacity, &kCFTypeSetCallBacks);
+        return (id)CFSetCreateMutable(kCFAllocatorDefault, capacity, &sNSCFSetCallBacks);
     }
     else
     {
@@ -262,7 +271,7 @@ SINGLETON_RR()
 {
     if (self == mutablePlaceholder)
     {
-        CFMutableSetRef set = CFSetCreateMutable(kCFAllocatorDefault, cnt, &kCFTypeSetCallBacks);
+        CFMutableSetRef set = CFSetCreateMutable(kCFAllocatorDefault, cnt, &sNSCFSetCallBacks);
 
         for (int i = 0; i < cnt; i++)
         {
@@ -274,7 +283,7 @@ SINGLETON_RR()
     }
     else
     {
-        return (id)CFSetCreate(kCFAllocatorDefault, (const void**)objects, cnt, &kCFTypeSetCallBacks);
+        return (id)CFSetCreate(kCFAllocatorDefault, (const void**)objects, cnt, &sNSCFSetCallBacks);
     }
 }
 
