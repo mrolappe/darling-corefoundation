@@ -496,10 +496,13 @@ CF_PRIVATE void __CFGenericValidateType_(CFTypeRef cf, CFTypeID type, const char
 #define __CFGenericAssertIsCF(cf) \
     CFAssert2(cf != NULL && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)), __kCFLogAssertion, "%s(): pointer %p is not a CF object", __PRETTY_FUNCTION__, cf);
 
+#include <objc/runtime.h>
+#include <objc/message.h>
 
-#define CFTYPE_IS_OBJC(obj) (false)
-#define CFTYPE_OBJC_FUNCDISPATCH0(rettype, obj, sel) do {} while (0)
-#define CFTYPE_OBJC_FUNCDISPATCH1(rettype, obj, sel, a1) do {} while (0)
+#define CFTYPE_IS_OBJC(obj) (!_CFIsCFObject(obj))
+#define CFTYPE_OBJC_FUNCDISPATCH(obj, sel) if (CFTYPE_IS_OBJC(obj)) { ((void (*)(CFTypeRef, SEL, ...))objc_msgSend)(obj, sel_getUid(#sel)); return; }
+#define CFTYPE_OBJC_FUNCDISPATCH0(rettype, obj, sel) if (CFTYPE_IS_OBJC(obj)) return ((rettype (*)(CFTypeRef, SEL, ...))objc_msgSend)(obj, sel_getUid(#sel))
+#define CFTYPE_OBJC_FUNCDISPATCH1(rettype, obj, sel, a1) if (CFTYPE_IS_OBJC(obj)) return ((rettype (*)(CFTypeRef, SEL, ...))objc_msgSend)(obj, sel_getUid(#sel), a1)
 
 
 CFTypeID CFGetTypeID(CFTypeRef cf) {
@@ -522,6 +525,7 @@ static CFTypeRef _CFRetain(CFTypeRef cf, Boolean tryR);
 
 CFTypeRef CFRetain(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFRetain() called with NULL ***"); HALT; }
+    CFTYPE_OBJC_FUNCDISPATCH0(CFTypeRef, cf, retain);
     if (cf) __CFGenericAssertIsCF(cf);
     return _CFRetain(cf, false);
 }
@@ -543,6 +547,7 @@ void CFRelease(CFTypeRef cf) {
 	HALT;
     }
 #endif
+    CFTYPE_OBJC_FUNCDISPATCH(cf, release);
     if (cf) __CFGenericAssertIsCF(cf);
     _CFRelease(cf);
 #if 0
@@ -661,6 +666,7 @@ static uint64_t __CFGetFullRetainCount(CFTypeRef cf) {
 
 CFIndex CFGetRetainCount(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFGetRetainCount() called with NULL ***"); HALT; }
+    CFTYPE_OBJC_FUNCDISPATCH0(CFIndex, cf, retainCount);
     uint32_t cfinfo = *(uint32_t *)&(((CFRuntimeBase *)cf)->_cfinfo);
     if (cfinfo & 0x800000) { // custom ref counting for object
         CFTypeID typeID = (cfinfo >> 8) & 0x03FF; // mask up to 0x0FFF
@@ -728,7 +734,7 @@ CFHashCode CFHash(CFTypeRef cf) {
 // definition: produces a normally non-NULL debugging description of the object
 CFStringRef CFCopyDescription(CFTypeRef cf) {
     if (NULL == cf) return NULL;
-    // CFTYPE_OBJC_FUNCDISPATCH0(CFStringRef, cf, _copyDescription);  // XXX returns 0 refcounted item under GC
+    CFTYPE_OBJC_FUNCDISPATCH0(CFStringRef, cf, _copyDescription);  // XXX returns 0 refcounted item under GC
     __CFGenericAssertIsCF(cf);
     if (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyDebugDesc) {
 	CFStringRef result = __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyDebugDesc(cf);
@@ -740,9 +746,14 @@ CFStringRef CFCopyDescription(CFTypeRef cf) {
 // Definition: if type produces a formatting description, return that string, otherwise NULL
 CF_PRIVATE CFStringRef __CFCopyFormattingDescription(CFTypeRef cf, CFDictionaryRef formatOptions) {
     if (NULL == cf) return NULL;
-    __CFGenericAssertIsCF(cf);
-    if (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyFormattingDesc) {
-	return __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyFormattingDesc(cf, formatOptions);
+    if (_CFIsCFObject(cf)) {
+        if (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyFormattingDesc) {
+            return __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyFormattingDesc(cf, formatOptions);
+        }
+    } else {
+        if ([(id)cf respondsToSelector:@selector(_copyDescription)]) {
+            CFTYPE_OBJC_FUNCDISPATCH0(CFStringRef, cf, _copyDescription);
+        }
     }
     return NULL;
 }

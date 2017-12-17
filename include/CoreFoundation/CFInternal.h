@@ -572,14 +572,6 @@ extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 
 #ifdef DARLING
 
-#if __LP64__
-#define CF_IS_TAGGED_OBJ(PTR)	((uintptr_t)(PTR) & 0x1)
-#define CF_TAGGED_OBJ_TYPE(PTR)	((uintptr_t)(PTR) & 0xF)
-#else
-#define CF_IS_TAGGED_OBJ(PTR)	0
-#define CF_TAGGED_OBJ_TYPE(PTR)	0
-#endif
-
 #define CF_OBJC_FUNCDISPATCHV(typeID, ret, obj, ...) \
 _Pragma("clang diagnostic push") \
 _Pragma("clang diagnostic ignored \"-Wreturn-type\"") \
@@ -592,14 +584,26 @@ _Pragma("clang diagnostic pop")
 
 #define CF_OBJC_CALLV(obj, ...) [obj __VA_ARGS__]
 
-#define CF_IS_OBJC(typeID, obj) ({ \
-	Class cls = object_getClass((id)obj); \
-	Boolean isObjc = false; \
-	if (__CFConstantStringClassReferencePtr != cls) { \
-		isObjc = (CF_IS_TAGGED_OBJ(obj) || (typeID < __CFRuntimeClassTableSize && cls != (Class)__CFRuntimeObjCClassTable[typeID])); \
-	} \
-	isObjc; \
-})
+#include <objc/objc-internal.h>
+
+CF_INLINE Boolean _CFIsCFObject(const void *obj) {
+#ifdef OBJC_HAVE_TAGGED_POINTERS
+	if (_objc_taggedPointersEnabled() && _objc_isTaggedPointer(obj)) return 0;
+#endif
+	uintptr_t isa = ((CFRuntimeBase *)obj)->_cfisa;
+	if (isa == 0) return 1;
+	// at this point, it's definetely a valid objc object,
+	// but we'd still like to return 1 for __NSCF types
+	Class cls = object_getClass((id)obj);
+	if (cls == __CFConstantStringClassReferencePtr) return 1;
+
+	uint32_t cfinfo = *(uint32_t *)&(((CFRuntimeBase *)obj)->_cfinfo);
+	CFTypeID typeID = (cfinfo >> 8) & 0x03FF;
+
+	return typeID < __CFRuntimeClassTableSize && cls == (Class)__CFRuntimeObjCClassTable[typeID];
+}
+
+#define CF_IS_OBJC(typeID, obj) (!_CFIsCFObject(obj))
 
 CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
     return (typeID < __CFRuntimeClassTableSize) ? __CFRuntimeObjCClassTable[typeID] : 0;
