@@ -25,12 +25,17 @@
 #define __CFCOREFOUNDATION_CFXPC_H__
 #include <CoreFoundation/CFBase.h>
 #include <xpc/xpc.h>
+#include <CoreFoundation/CFDictionary.h>
 
 CF_EXTERN_C_BEGIN
 
 extern CFTypeRef _CFXPCCreateCFObjectFromXPCObject(xpc_object_t xpcattrs);
 
 extern xpc_object_t _CFXPCCreateXPCObjectFromCFObject(CFTypeRef attrs);
+
+extern xpc_object_t _CFXPCCreateXPCMessageWithCFObject(CFTypeRef obj);
+
+extern CFTypeRef _CFXPCCreateCFObjectFromXPCMessage(xpc_object_t obj);
 
 CF_EXTERN_C_END
 
