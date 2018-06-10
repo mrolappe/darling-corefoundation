@@ -188,7 +188,7 @@ __CF_forwarding_prep_1:
     movq %rsp, %rbp
 
     // Copy args from regs into a stack var
-    subq   $0xd0, %rsp
+    subq   $0xe0, %rsp
     movq   %rax, 0xb0(%rsp)
     movapd %xmm7, 0xa0(%rsp)
     movapd %xmm6, 0x90(%rsp)
@@ -206,25 +206,28 @@ __CF_forwarding_prep_1:
     movq   %rdi, (%rsp)
 
     movq   %rsp, %rdi
-    xorl   %esi, %esi
+    leaq   0xc0(%rsp), %rsi
     call   ____forwarding___ // call through
 
-    cmpq   $0, %rax            // check for forwarding completion
-    jne    Lfail             // return to caller if done
+    cmpq   $0, %rax          // check for forwarding completion
+    jne    Lfail
 
-    // double return    
-    movapd 0x20(%rax), %xmm1
-    movapd 0x10(%rax), %xmm0
+    // if it's nil, we're done
+    // now, load the return value from the on-stack storage
+    // and jump back to our caller
 
-    movq   8(%rax), %rdx
-    movq   (%rax), %rax
+    movq   0xc0(%rsp), %rax
+    movq   0xc8(%rsp), %rdx
+    // to handle returning floats, read the same memory into FP registers too
+    movapd 0xc0(%rsp), %xmm0
+    movapd 0xd0(%rsp), %xmm1
 
     movq   %rbp, %rsp
     pop    %rbp
     ret
 
 Lfail:
-
+    // if we got a non-nil value, it's our forwarding target
     movq   %rax, %rdi
     movq   0x80(%rsp), %rax
     movapd 0xa0(%rsp), %xmm7
