@@ -620,48 +620,6 @@ CF_IMPLICIT_BRIDGING_DISABLED
 CF_EXPORT
 CFTypeRef CFMakeCollectable(CFTypeRef cf) CF_AUTOMATED_REFCOUNT_UNAVAILABLE;
 
-#ifdef DARLING
-// normally, CFBase should import these from CoreGraphics,
-// but Cocotron's CoreGraphics defines these in CFBase.h,
-// and so we copy it to here
-
-#ifdef __LP64__
-typedef double CGFloat;
-#define CGFLOAT_MIN DBL_MIN
-#define CGFLOAT_MAX DBL_MAX
-#define CGFLOAT_SCAN "%lg"
-#else
-typedef float CGFloat;
-#define CGFLOAT_MIN FLT_MIN
-#define CGFLOAT_MAX FLT_MAX
-#define CGFLOAT_SCAN "%g"
-#endif
-
-typedef struct CGPoint {
-    CGFloat x;
-    CGFloat y;
-} CGPoint;
-
-typedef struct CGSize {
-    CGFloat width;
-    CGFloat height;
-} CGSize;
-
-typedef struct CGRect {
-    CGPoint origin;
-    CGSize size;
-} CGRect;
-
-// this one is from GNUstep Opal
-typedef enum CGRectEdge
-{
-  CGRectMinXEdge = 0,
-  CGRectMinYEdge = 1,
-  CGRectMaxXEdge = 2,
-  CGRectMaxYEdge = 3
-} CGRectEdge;
-#endif
-
 CF_EXTERN_C_END
 
 #endif /* ! __COREFOUNDATION_CFBASE__ */
