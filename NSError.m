@@ -30,6 +30,7 @@ NSString *const NSHelpAnchorErrorKey = @"NSHelpAnchor";
 NSString *const NSStringEncodingErrorKey = @"NSStringEncoding";
 NSString *const NSURLErrorKey = @"NSURL";
 NSString *const NSFilePathErrorKey = @"NSFilePath";
+NSString *const NSDebugDescriptionErrorKey = @"NSDebugDescription";
 
 static NSError *_outOfmemoryError = nil;
 
