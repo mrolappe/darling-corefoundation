@@ -120,8 +120,17 @@ static BOOL _rangeCheckIndex(__NSCFAttributedString *self, NSUInteger index)
 - (NSAttributedString *)attributedSubstringFromRange:(NSRange)range
 {
     RANGE_CHECK_RANGE(nil);
-    return [(NSAttributedString *)CFAttributedStringCreateWithSubstring(kCFAllocatorSystemDefault, 
-        (CFAttributedStringRef)self, CFRangeMake(range.location, range.length)) autorelease];
+
+    NSAttributedString *res = (NSAttributedString *) CFAttributedStringCreateWithSubstring(
+        kCFAllocatorSystemDefault, (CFAttributedStringRef) self,
+        CFRangeMake(range.location, range.length));
+
+    if (range.length == 0 && res == nil)
+    {
+        // Core Foundation returns NULL/nil here, but Foundation returns an empty attributed string
+        res = [[NSAttributedString alloc] initWithString: @""];
+    }
+    return [res autorelease];
 }
 
 - (NSDictionary *)attributesAtIndex:(NSUInteger)index longestEffectiveRange:(NSRangePointer)range inRange:(NSRange)rangeLimit
