@@ -273,6 +273,11 @@ CF_PRIVATE uint8_t __CFDeallocateZombies = 0;
 extern void __CFZombifyNSObject(void);  // from NSObject.m
 
 void _CFEnableZombies(void) {
+    if (__CFZombieEnabled) {
+        return;
+    }
+    __CFZombieEnabled = 1;
+    __CFZombifyNSObject();
 }
 
 #endif /* DEBUG */
