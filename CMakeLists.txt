@@ -140,6 +140,7 @@ set(cf_sources
 	NSOrderedSet.m
 	NSOutputStream.m
 	NSPropertyList.m
+	NSRunLoop.m
 	NSSet.m
 	NSSharedKeyDictionary.m
 	NSSharedKeySet.m
