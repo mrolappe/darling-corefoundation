@@ -153,6 +153,7 @@ set(cf_sources
 	NSZombie.m
 	CFForwardingPrep.S
 	FoundationExceptions.m
+	NSRunLoopModes.m
 )
 
 add_separated_framework(CoreFoundation
