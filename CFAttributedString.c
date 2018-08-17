@@ -445,12 +445,13 @@ CFAttributedStringRef CFAttributedStringCreateWithSubstring(CFAllocatorRef alloc
     {
         CFRange effRange;
         CFIndex selfIndex = i + delta;
-        CFDictionaryRef attrs = CFAttributedStringGetAttributes(aStr, selfIndex, &effRange);  
+        CFDictionaryRef attrs = CFAttributedStringGetAttributes(aStr, selfIndex, &effRange);
         newLength = effRange.length;
         if (effRange.location < selfIndex)
         {
             newLength -= selfIndex - effRange.location;
         }
+        newLength = __CFMin(newLength, range.length - i);
         CFAttributedStringSetAttributes(obj, CFRangeMake(i, newLength), attrs, false);
     }
     return (CFAttributedStringRef)obj;
