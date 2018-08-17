@@ -1121,6 +1121,9 @@ void __CFInitialize(void) {
         CFTimeZoneGetTypeID();
         CFCalendarGetTypeID();
 #endif
+        // _CFKeyedArchiverUID is one-way bridged to __NSCFType
+        _CFKeyedArchiverUIDGetTypeID();
+        _CFRuntimeBridgeClasses(_CFKeyedArchiverUIDGetTypeID(), "__NSCFType");
 #endif
 
         {
