@@ -15,6 +15,24 @@ extern CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
 extern Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, int **componentVector, int count);
 extern Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, int **vector, int count);
 
+const NSCalendarIdentifier NSCalendarIdentifierGregorian = @"NSCalendarIdentifierGregorian";
+const NSCalendarIdentifier NSCalendarIdentifierISO8601 = @"NSCalendarIdentifierISO8601";
+const NSCalendarIdentifier NSCalendarIdentifierBuddhist = @"NSCalendarIdentifierBuddhist";
+const NSCalendarIdentifier NSCalendarIdentifierChinese = @"NSCalendarIdentifierChinese";
+const NSCalendarIdentifier NSCalendarIdentifierCoptic = @"NSCalendarIdentifierCoptic";
+const NSCalendarIdentifier NSCalendarIdentifierEthiopicAmeteAlem = @"NSCalendarIdentifierEthiopicAmeteAlem";
+const NSCalendarIdentifier NSCalendarIdentifierEthiopicAmeteMihret = @"NSCalendarIdentifierEthiopicAmeteMihret";
+const NSCalendarIdentifier NSCalendarIdentifierHebrew = @"NSCalendarIdentifierHebrew";
+const NSCalendarIdentifier NSCalendarIdentifierIndian = @"NSCalendarIdentifierIndian";
+const NSCalendarIdentifier NSCalendarIdentifierIslamic = @"NSCalendarIdentifierIslamic";
+const NSCalendarIdentifier NSCalendarIdentifierIslamicCivil = @"NSCalendarIdentifierIslamicCivil";
+const NSCalendarIdentifier NSCalendarIdentifierIslamicTabular = @"NSCalendarIdentifierIslamicTabular";
+const NSCalendarIdentifier NSCalendarIdentifierIslamicUmmAlQura = @"NSCalendarIdentifierIslamicUmmAlQura";
+const NSCalendarIdentifier NSCalendarIdentifierJapanese = @"NSCalendarIdentifierJapanese";
+const NSCalendarIdentifier NSCalendarIdentifierPersian = @"NSCalendarIdentifierPersian";
+const NSCalendarIdentifier NSCalendarIdentifierRepublicOfChina = @"NSCalendarIdentifierRepublicOfChina";
+
+
 @implementation NSCalendar
 
 + (id)allocWithZone:(NSZone *)zone
