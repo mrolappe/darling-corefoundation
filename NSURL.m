@@ -111,6 +111,32 @@ NSString *const NSURLUbiquitousItemIsUploadingKey = @"NSURLUbiquitousItemIsUploa
 NSString *const NSURLUbiquitousItemPercentDownloadedKey = @"NSURLUbiquitousItemPercentDownloadedKey";
 NSString *const NSURLUbiquitousItemPercentUploadedKey = @"NSURLUbiquitousItemPercentUploadedKey";
 NSString *const NSURLTagNamesKey = @"NSURLTagNamesKey";
+NSString *const NSURLUbiquitousItemDownloadingErrorKey = @"NSURLUbiquitousItemDownloadingErrorKey";
+NSString *const NSURLUbiquitousItemDownloadingStatusKey = @"NSURLUbiquitousItemDownloadingStatusKey";
+NSString *const NSURLApplicationIsScriptableKey = @"NSURLApplicationIsScriptableKey";
+NSString *const NSURLCanonicalPathKey = @"NSURLCanonicalPathKey";
+NSString *const NSURLDocumentIdentifierKey = @"NSURLDocumentIdentifierKey";
+NSString *const NSURLErrorFailingURLErrorKey = @"NSURLErrorFailingURLErrorKey";
+NSString *const NSURLErrorFailingURLPeerTrustErrorKey = @"NSURLErrorFailingURLPeerTrustErrorKey";
+NSString *const NSURLErrorFailingURLStringErrorKey = @"NSURLErrorFailingURLStringErrorKey";
+NSString *const NSURLGenerationIdentifierKey = @"NSURLGenerationIdentifierKey";
+NSString *const NSURLIsApplicationKey = @"NSURLIsApplicationKey";
+NSString *const NSURLQuarantinePropertiesKey = @"NSURLQuarantinePropertiesKey";
+NSString *const NSURLUbiquitousItemContainerDisplayNameKey = @"NSURLUbiquitousItemContainerDisplayNameKey";
+NSString *const NSURLUbiquitousItemDownloadRequestedKey = @"NSURLUbiquitousItemDownloadRequestedKey";
+NSString *const NSURLUbiquitousItemIsSharedKey = @"NSURLUbiquitousItemIsSharedKey";
+NSString *const NSURLUbiquitousItemUploadingErrorKey = @"NSURLUbiquitousItemUploadingErrorKey";
+NSString *const NSURLUbiquitousSharedItemCurrentUserPermissionsKey = @"NSURLUbiquitousSharedItemCurrentUserPermissionsKey";
+NSString *const NSURLUbiquitousSharedItemCurrentUserRoleKey = @"NSURLUbiquitousSharedItemCurrentUserRoleKey";
+NSString *const NSURLUbiquitousSharedItemMostRecentEditorNameComponentsKey = @"NSURLUbiquitousSharedItemMostRecentEditorNameComponentsKey";
+NSString *const NSURLUbiquitousSharedItemOwnerNameComponentsKey = @"NSURLUbiquitousSharedItemOwnerNameComponentsKey";
+NSString *const NSURLVolumeAvailableCapacityForImportantUsageKey = @"NSURLVolumeAvailableCapacityForImportantUsageKey";
+NSString *const NSURLVolumeAvailableCapacityForOpportunisticUsageKey = @"NSURLVolumeAvailableCapacityForOpportunisticUsageKey";
+NSString *const NSURLVolumeIsEncryptedKey = @"NSURLVolumeIsEncryptedKey";
+NSString *const NSURLVolumeIsRootFileSystemKey = @"NSURLVolumeIsRootFileSystemKey";
+NSString *const NSURLVolumeSupportsCompressionKey = @"NSURLVolumeSupportsCompressionKey";
+
+
 
 static void posixError(CFErrorRef *error) {
     const CFStringRef keys[1] = {
