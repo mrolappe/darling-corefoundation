@@ -110,6 +110,7 @@ NSString *const NSURLUbiquitousItemIsUploadedKey = @"NSURLUbiquitousItemIsUpload
 NSString *const NSURLUbiquitousItemIsUploadingKey = @"NSURLUbiquitousItemIsUploadingKey";
 NSString *const NSURLUbiquitousItemPercentDownloadedKey = @"NSURLUbiquitousItemPercentDownloadedKey";
 NSString *const NSURLUbiquitousItemPercentUploadedKey = @"NSURLUbiquitousItemPercentUploadedKey";
+NSString *const NSURLTagNamesKey = @"NSURLTagNamesKey";
 
 static void posixError(CFErrorRef *error) {
     const CFStringRef keys[1] = {
