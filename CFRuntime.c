@@ -136,6 +136,7 @@ void __CFSetLastAllocationEventName(void *ptr, const char *classname) { }
 extern void __HALT(void);
 
 static CFTypeID __kCFNotATypeTypeID = _kCFRuntimeNotATypeID;
+id __NSDictionary0__, __NSArray0__;
 
 #if !defined (__cplusplus)
 static const CFRuntimeClass __CFNotATypeClass = {
@@ -1185,6 +1186,16 @@ void __CFInitialize(void) {
 #endif
 
         __CFProphylacticAutofsAccess = false;
+
+        Class clsDict, clsArray;
+        SEL selAlloc, selInit;
+        clsDict = objc_lookUpClass("NSDictionary");
+        clsArray = objc_lookUpClass("NSArray");
+        selAlloc = sel_registerName("alloc");
+        selInit = sel_registerName("init");
+        __NSDictionary0__ = objc_msgSend(objc_msgSend(clsDict, selAlloc), selInit);
+        __NSArray0__ = objc_msgSend(objc_msgSend(clsArray, selAlloc), selInit);
+
         __CFInitializing = 0;
         __CFInitialized = 1;
     }
