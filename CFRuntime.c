@@ -1697,6 +1697,8 @@ static void _CFRelease(CFTypeRef cf) {
 	}
 
 	{
+	    Boolean isValidObjCObject = ((CFRuntimeBase *) cf)->_cfisa != 0;
+	    if (isValidObjCObject) objc_destructInstance(cf);
 	    CFAllocatorDeallocate(allocator, (uint8_t *)cf - (usesSystemDefaultAllocator ? 0 : sizeof(CFAllocatorRef)));
 	}
 
