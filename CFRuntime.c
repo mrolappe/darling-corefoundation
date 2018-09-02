@@ -538,7 +538,7 @@ CFTypeRef CFRetain(CFTypeRef cf) {
 
 CFTypeRef CFAutorelease(CFTypeRef __attribute__((cf_consumed)) cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFAutorelease() called with NULL ***"); HALT; }
-    return cf;
+    return ((CFTypeRef (*)(CFTypeRef, SEL))objc_msgSend)(cf, sel_getUid("autorelease"));
 }
 
 static void _CFRelease(CFTypeRef cf);
