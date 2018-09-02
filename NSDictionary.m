@@ -888,7 +888,7 @@ static NSString *_getDescription(id obj, id locale, int level)
 
     if (![otherDictionary isKindOfClass:[NSDictionary class]])
     {
-        @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Second argument is not a dictionary" userInfo:nil];
+        // @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Second argument is not a dictionary" userInfo:nil];
         return NO;
     }
 
