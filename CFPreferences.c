@@ -586,7 +586,7 @@ CF_PRIVATE void _CFPreferencesPurgeDomainCache(void) {
     __CFUnlock(&domainCacheLock);
 }
 
-CF_PRIVATE CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
+CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
     CFArrayRef  domains;
     CFMutableArrayRef  marray;
