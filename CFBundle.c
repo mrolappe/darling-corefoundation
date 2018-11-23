@@ -40,6 +40,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
 #else
@@ -2314,7 +2315,7 @@ static CFURLRef __CFBundleCopyFrameworkURLForExecutablePath(CFStringRef executab
     CFIndex length, nameStart, nameLength, savedLength;
     CFMutableStringRef cheapStr = CFStringCreateMutableWithExternalCharactersNoCopy(kCFAllocatorSystemDefault, NULL, 0, 0, NULL);
     CFURLRef bundleURL = NULL;
-    
+
     length = CFStringGetLength(executablePath);
     if (length > CFMaxPathSize) length = CFMaxPathSize;
     CFStringGetCharacters(executablePath, CFRangeMake(0, length), pathBuff);
@@ -2621,3 +2622,7 @@ CF_EXPORT CFURLRef CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle) {
     return result;
 }
 
+CF_EXPORT CFBundleRef _CFBundleCreateUnique(CFAllocatorRef allocator, CFURLRef bundleURL) {
+	printf("_CFBundleCreateUnique stub\n");
+	return NULL;
+}
