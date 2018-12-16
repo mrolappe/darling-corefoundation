@@ -883,6 +883,12 @@ Boolean CFURLWriteBookmarkDataToFile(CFDataRef bookmarkRef, CFURLRef fileURL, CF
     return false;
 }
 
+CFTypeRef CFURLCreateResourcePropertyForKeyFromBookmarkData(CFAllocatorRef allocator, CFStringRef resourcePropertyToReturn, CFDataRef bookmark)
+{
+#warning TODO: FIXME
+    return NULL;
+}
+
 CFDictionaryRef CFURLCreateResourcePropertiesForKeysFromBookmarkData(CFAllocatorRef allocator, CFArrayRef resourcePropertiesToReturn, CFDataRef bookmark)
 {
 #warning TODO: FIXME
