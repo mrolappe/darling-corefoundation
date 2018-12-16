@@ -463,7 +463,7 @@ CF_PRIVATE
 
 - (void)removeObjectsInRange:(NSRange)range
 {
-    for (NSInteger idx = NSMaxRange(range) - 1; idx >= 0; idx--)
+    for (NSInteger idx = NSMaxRange(range) - 1; idx >= range.location; idx--)
     {
         [self removeObjectAtIndex:idx];
     }
