@@ -459,7 +459,7 @@ static _CFBundleFileVersion _CFBundleCheckFileProductAndPlatform(CFStringRef fil
     if (CFStringFindWithOptions(file, CFSTR("~"), searchRange, 0, NULL)) {
         if (CFStringGetLength(product) != 1) {
             // todo: really, search the same range again?
-            if (CFStringFindWithOptions(file, product, searchRange, kCFCompareEqualTo, NULL)) {
+            if (CFStringFindWithOptions(file, product, searchRange, 0, NULL)) {
                 foundprod = YES;
             }
         }
@@ -469,7 +469,7 @@ static _CFBundleFileVersion _CFBundleCheckFileProductAndPlatform(CFStringRef fil
     }
     
     if (!wrong && CFStringFindWithOptions(file, CFSTR("-"), searchRange, 0, NULL)) {
-        if (CFStringFindWithOptions(file, platform, searchRange, kCFCompareEqualTo, NULL)) {
+        if (CFStringFindWithOptions(file, platform, searchRange, 0, NULL)) {
             foundplat = YES;
         }
         if (!foundplat) {
@@ -1006,17 +1006,17 @@ static CFTypeRef _CFBundleCopyURLsOfKey(CFBundleRef bundle, CFURLRef bundleURL, 
             // if we have subdir, we find the subdir and see if it is after the base path (bundle path + res dir)
             Boolean searchForLocalization = false;
             if (subDir && CFStringGetLength(subDir) > 0) {
-                if (CFStringFindWithOptions(pathValue, subDir, searchRange, kCFCompareEqualTo, &resultRange) && resultRange.location != searchRange.location) {
+                if (CFStringFindWithOptions(pathValue, subDir, searchRange, 0, &resultRange) && resultRange.location != searchRange.location) {
                     searchForLocalization = true;
                 }
             } else if (!(subDir && CFStringGetLength(subDir) > 0) && searchRange.length != 0) {
-                if (CFStringFindWithOptions(pathValue, _CFBundleLprojExtensionWithDot, searchRange, kCFCompareEqualTo, &resultRange) && resultRange.location + 7 < pathValueLen) {
+                if (CFStringFindWithOptions(pathValue, _CFBundleLprojExtensionWithDot, searchRange, 0, &resultRange) && resultRange.location + 7 < pathValueLen) {
                     searchForLocalization = true;
                 }
             }
             
             if (searchForLocalization) {
-                if (!lpLen || !(CFStringFindWithOptions(pathValue, lproj, searchRange, kCFCompareEqualTo | kCFCompareAnchored, &resultRange) && CFStringFindWithOptions(pathValue, CFSTR("."), CFRangeMake(resultRange.location + resultRange.length, 1), kCFCompareEqualTo, &resultRange))) {
+                if (!lpLen || !(CFStringFindWithOptions(pathValue, lproj, searchRange, kCFCompareAnchored, &resultRange) && CFStringFindWithOptions(pathValue, CFSTR("."), CFRangeMake(resultRange.location + resultRange.length, 1), 0, &resultRange))) {
                     break;
                 }
                 checkLP = false;

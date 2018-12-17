@@ -473,7 +473,7 @@ CF_INLINE size_t auto_zone_size(void *zone, const void *ptr) { return 0; }
 CF_INLINE void auto_register_weak_reference(void *zone, const void *referent, void **referrer, uintptr_t *counter, void **listHead, void **listElement) {}
 CF_INLINE void auto_unregister_weak_reference(void *zone, const void *referent, void **referrer) {}
 CF_INLINE int auto_zone_is_valid_pointer(void *zone, const void *ptr) { return 0; }
-CF_INLINE BOOL objc_isAuto(id object) { return 0; }
+//CF_INLINE BOOL objc_isAuto(id object) { return 0; }
 CF_INLINE void* auto_read_weak_reference(void *zone, void **referrer) { void *result = *referrer; return result; }
 CF_INLINE void auto_assign_weak_reference(void *zone, const void *value, const void **location, auto_weak_callback_block_t *block) { *location = (void *)value; }
 CF_INLINE auto_memory_type_t auto_zone_get_layout_type(void *zone, void *ptr) { return AUTO_UNSCANNED; }

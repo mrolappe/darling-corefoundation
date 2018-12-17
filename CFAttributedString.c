@@ -365,7 +365,7 @@ static CFStringRef __CFAttributedStringCopyDescription(CFTypeRef cf)
             CFStringAppendFormat(out, NULL, CFSTR("%@ %@ Len %d\n\n"),
                 substr,
                 inp->_dictionary,
-                inp->_range.length);
+                (int)inp->_range.length);
             CFRelease(substr);
         }
         else
