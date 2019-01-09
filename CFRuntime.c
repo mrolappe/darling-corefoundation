@@ -1085,7 +1085,7 @@ void __CFInitialize(void) {
 #endif
         CFUUIDGetTypeID();
         // This isn't normally bridged!
-        _CFRuntimeBridgeClasses(CFUUIDGetTypeID(), "__NSConcreteUUID");
+        // _CFRuntimeBridgeClasses(CFUUIDGetTypeID(), "__NSConcreteUUID");
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
 	CFMessagePortGetTypeID();
 #endif
