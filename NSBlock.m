@@ -78,7 +78,13 @@ static void NSBlockInitialize()
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC));
     dispatch_after(popTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), (dispatch_block_t)self);
 }
+
 - (id)copy
+{
+    return Block_copy(self);
+}
+
+- (id) copyWithZone: (NSZone *) zone
 {
     return Block_copy(self);
 }
@@ -100,7 +106,7 @@ static void NSBlockInitialize()
 
 - (oneway void)release
 {
-    
+
 }
 
 - (id)retain
