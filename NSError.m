@@ -31,6 +31,7 @@ NSString *const NSStringEncodingErrorKey = @"NSStringEncoding";
 NSString *const NSURLErrorKey = @"NSURL";
 NSString *const NSFilePathErrorKey = @"NSFilePath";
 NSString *const NSDebugDescriptionErrorKey = @"NSDebugDescription";
+NSString *const NSLocalizedFailureErrorKey = @"NSLocalizedFailure";
 
 static NSError *_outOfmemoryError = nil;
 
