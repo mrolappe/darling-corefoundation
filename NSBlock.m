@@ -8,6 +8,7 @@
 #import "NSBlock.h"
 #import <dispatch/dispatch.h>
 #import <objc/runtime.h>
+#include <stdio.h>
 
 extern Class objc_initializeClassPair(Class superclass_gen, const char *name, Class cls_gen, Class meta_gen);
 
@@ -69,9 +70,6 @@ static void NSBlockInitialize()
 
 @implementation NSBlock
 // abstract class
-@end
-
-@implementation NSBlock (Extensions)
 
 - (void)performAfterDelay:(NSTimeInterval)delay
 {
@@ -87,6 +85,11 @@ static void NSBlockInitialize()
 - (id) copyWithZone: (NSZone *) zone
 {
     return Block_copy(self);
+}
+
+- (void)invoke
+{
+	printf("block invoke stub");
 }
 
 @end

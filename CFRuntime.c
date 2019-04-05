@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFCalendar.h>
+#include <CoreFoundation/FoundationExceptions.h>
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
@@ -67,6 +68,8 @@ __kCFReleaseEvent = 29
 #else
 #include <malloc/malloc.h>
 #endif
+
+CF_PRIVATE void __CFAttributedStringInitialize(void); // From CFAttributedString.c
 
 #define FAKE_INSTRUMENTS 0
 

@@ -349,18 +349,18 @@ void _CFBigNumInitWithBytes(_CFBigNum *r, const void *bytes, CFNumberType type) 
             _CFBigNumInitWithInt32(r, *(int32_t *)bytes);
         }
         return;
+    default: break;
+    }
+
 #if __LP64__
-    case kCFNumberSInt128Type: {
+    if (type == kCFNumberSInt128Type)
+    {
         CFSInt128Struct s;
         memmove(&s, bytes, sizeof(CFSInt128Struct)); // the hard way because bytes might not be aligned
         __int128_t val = (__int128_t)s.low + ((__int128_t)s.high << 64);
         _CFBigNumInitWithInt128(r, val);
-        return;
     }
 #endif
-    default:
-        return;
-    }
 }
 
 CFNumberRef _CFNumberCreateWithBigNum(const _CFBigNum *input) {

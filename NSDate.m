@@ -10,6 +10,7 @@
 #import "NSObjectInternal.h"
 #import "ForFoundationOnly.h"
 #import <sys/time.h>
+#include <stdio.h>
 
 CF_PRIVATE
 @interface __NSPlaceholderDate : NSDate
@@ -28,6 +29,16 @@ CF_PRIVATE
 
 
 @implementation NSDate
+
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+}
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return nil;
+}
 
 + (id)allocWithZone:(NSZone *)zone
 {
@@ -66,10 +77,6 @@ CF_PRIVATE
 {
     return YES;
 }
-
-@end
-
-@implementation NSDate (NSExtendedDate)
 
 + (NSTimeInterval)timeIntervalSinceReferenceDate
 {
@@ -219,7 +226,7 @@ CF_PRIVATE
 
     CFStringRef desc = CFDateFormatterCreateStringWithDate(kCFAllocatorDefault, effectiveFormatter, (CFDateRef)self);
 
-    if (effectiveLocale != locale)
+    if ((id)effectiveLocale != locale)
     {
         CFRelease(effectiveLocale);
     }
@@ -231,10 +238,6 @@ CF_PRIVATE
 
     return [(NSString *)desc autorelease];
 }
-
-@end
-
-@implementation NSDate (NSDateCreation)
 
 + (id)date
 {
@@ -286,6 +289,7 @@ CF_PRIVATE
 - (id)init
 {
     return [self initWithTimeIntervalSinceReferenceDate:CFAbsoluteTimeGetCurrent()];
+
 }
 
 - (id)initWithTimeIntervalSinceNow:(NSTimeInterval)ti

@@ -47,11 +47,14 @@
 //#include <NSSystemDirectories.h>
 
 CFSearchPathEnumerationState __CFStartSearchPathEnumeration(CFSearchPathDirectory dir, CFSearchPathDomainMask domainMask) {
-    return NSStartSearchPathEnumeration(dir, domainMask);
+    //return NSStartSearchPathEnumeration(dir, domainMask);
+   
+    printf("Underlying functions not implemented %s\n", __PRETTY_FUNCTION__);
+    return 0;
 }
 
 CFSearchPathEnumerationState __CFGetNextSearchPathEnumeration(CFSearchPathEnumerationState state, uint8_t *path, CFIndex pathSize) {
-    CFSearchPathEnumerationState result;
+    /*CFSearchPathEnumerationState result;
     // NSGetNextSearchPathEnumeration requires a MAX_PATH size
     if (pathSize < PATH_MAX) {
         uint8_t tempPath[PATH_MAX];
@@ -60,7 +63,10 @@ CFSearchPathEnumerationState __CFGetNextSearchPathEnumeration(CFSearchPathEnumer
     } else {
         result = NSGetNextSearchPathEnumeration(state, (char *)path);
     }
-    return result;
+    return result;*/
+
+    printf("Underlying functions not implemented %s\n", __PRETTY_FUNCTION__);
+    return 0;
 }
 
 #endif

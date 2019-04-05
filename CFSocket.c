@@ -1189,7 +1189,7 @@ CF_INLINE void __CFSocketEstablishAddress(CFSocketRef s) {
     /* socket should already be locked */
     uint8_t name[MAX_SOCKADDR_LEN];
     int namelen = sizeof(name);
-    if (__CFSocketIsValid(s) && NULL == s->_address && INVALID_SOCKET != s->_socket && 0 == getsockname(s->_socket, (struct sockaddr *)name, (socklen_t *)&namelen) && NULL != name && 0 < namelen) {
+    if (__CFSocketIsValid(s) && NULL == s->_address && INVALID_SOCKET != s->_socket && 0 == getsockname(s->_socket, (struct sockaddr *)name, (socklen_t *)&namelen) && 0 < namelen) {
         s->_address = CFDataCreate(CFGetAllocator(s), name, namelen);
     }
 }
@@ -1198,7 +1198,7 @@ CF_INLINE void __CFSocketEstablishPeerAddress(CFSocketRef s) {
     /* socket should already be locked */
     uint8_t name[MAX_SOCKADDR_LEN];
     int namelen = sizeof(name);
-    if (__CFSocketIsValid(s) && NULL == s->_peerAddress && INVALID_SOCKET != s->_socket && 0 == getpeername(s->_socket, (struct sockaddr *)name, (socklen_t *)&namelen) && NULL != name && 0 < namelen) {
+    if (__CFSocketIsValid(s) && NULL == s->_peerAddress && INVALID_SOCKET != s->_socket && 0 == getpeername(s->_socket, (struct sockaddr *)name, (socklen_t *)&namelen) && 0 < namelen) {
         s->_peerAddress = CFDataCreate(CFGetAllocator(s), name, namelen);
     }
 }
@@ -1569,7 +1569,7 @@ static void __CFSocketHandleRead(CFSocketRef s, Boolean causedByTimeout)
             return;
         }
         __CFSocketSetReadSignalled(s);
-        if (NULL != name && 0 < namelen) {
+        if (0 < namelen) {
             //??? possible optimizations:  uniquing; storing last value
             address = CFDataCreate(CFGetAllocator(s), name, namelen);
         } else if (__CFSocketIsConnectionOriented(s)) {
@@ -1606,7 +1606,7 @@ static void __CFSocketHandleRead(CFSocketRef s, Boolean causedByTimeout)
             //??? should return error
             return;
         }
-        if (NULL != name && 0 < namelen) {
+        if (0 < namelen) {
             address = CFDataCreate(CFGetAllocator(s), name, namelen);
         } else {
             address = (CFDataRef)CFRetain(zeroLengthData);

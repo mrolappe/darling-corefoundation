@@ -11,6 +11,8 @@
 #import "ForFoundationOnly.h"
 #import "NSObjectInternal.h"
 
+#include <stdio.h>
+
 CF_PRIVATE
 @interface __NSCFError : __NSCFType
 @end
@@ -103,7 +105,8 @@ static NSError *_outOfmemoryError = nil;
         desc = (NSString *)_CFErrorCreateLocalizedDescription((CFErrorRef)self);
         if (desc == nil)
         {
-            desc = (NSString *)CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("Operation could not be completed. %@ %d"), [self domain], [self code]);
+            desc = (NSString *)CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
+			    CFSTR("Operation could not be completed. %@ %ld"), [self domain], (long)[self code]);
         }
     }
     
@@ -147,7 +150,8 @@ static NSError *_outOfmemoryError = nil;
 
 - (id)initWithCoder:(NSCoder *)aDecoder
 {
-#warning TODO: FIXME
+// TODO: FIXME
+	printf("STUB %s", __PRETTY_FUNCTION__);
     [self release];
     return nil;
 }

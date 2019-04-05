@@ -13,6 +13,11 @@ include_directories(
 	${CMAKE_SOURCE_DIR}/src/external/foundation/src
 )
 
+add_compile_options(
+	-Werror
+	-Wall
+)
+
 add_definitions(-DCF_BUILDING_CF
 	-DDEPLOYMENT_TARGET_MACOSX=1
 	-DU_SHOW_DRAFT_API=1

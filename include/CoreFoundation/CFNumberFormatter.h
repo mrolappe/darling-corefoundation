@@ -48,7 +48,8 @@ typedef CF_ENUM(CFIndex, CFNumberFormatterStyle) {	// number format styles
 	kCFNumberFormatterCurrencyStyle = 2,
 	kCFNumberFormatterPercentStyle = 3,
 	kCFNumberFormatterScientificStyle = 4,
-	kCFNumberFormatterSpellOutStyle = 5
+	kCFNumberFormatterSpellOutStyle = 5,
+	kCFNumberFormatterOrdinalStyle = 6,
 };
 
 

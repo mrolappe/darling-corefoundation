@@ -15,9 +15,12 @@
 
 #import "NSObjectInternal.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincomplete-implementation"
 @implementation NSTimer
 
 @end
+#pragma clang diagnostic pop
 
 CF_PRIVATE
 @interface _NSTimerInfo : NSObject {

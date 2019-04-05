@@ -78,7 +78,8 @@ static CONST_STRING_DECL(kCFURLHTTPSScheme, "https")
 static CONST_STRING_DECL(kCFURLFileScheme, "file")
 static CONST_STRING_DECL(kCFURLDataScheme, "data")
 static CONST_STRING_DECL(kCFURLFTPScheme, "ftp")
-static CONST_STRING_DECL(kCFURLLocalhost, "localhost")
+// unused
+//static CONST_STRING_DECL(kCFURLLocalhost, "localhost")
 #else
 CONST_STRING_DECL(kCFURLHTTPScheme, "http")
 CONST_STRING_DECL(kCFURLHTTPSScheme, "https")
@@ -2111,6 +2112,10 @@ static CFURLRef _CFURLCreateWithFileSystemPath(CFAllocatorRef allocator, CFStrin
                 }
             }
                 break;
+
+		case kCFURLHFSPathStyle:
+		    printf("HFS path style not handled yet %s\n", __PRETTY_FUNCTION__);
+		    break;
         }
         
         CFAssert2(urlString != NULL, __kCFLogAssertion, "%s(): Encountered malformed file system URL %@", __PRETTY_FUNCTION__, urlString);
@@ -4971,7 +4976,7 @@ CFURLRef CFURLCreateFileReferenceURL(CFAllocatorRef alloc, CFURLRef url, CFError
 CFURLRef
 CFURLCreateFromFSRef (CFAllocatorRef alloc, const FSRefPtr fsRef)
 {
-    char path[4096];
+    char  path[4096];
     struct stat st;
     Boolean isDir = false;
     static OSStatus (*FSRefMakePath_ptr)(const struct FSRef *ref, UInt8 *path, UInt32 pathBufferSize) = NULL;
@@ -4994,7 +4999,7 @@ CFURLCreateFromFSRef (CFAllocatorRef alloc, const FSRefPtr fsRef)
     if (stat(path, &st))
         isDir = S_ISDIR(st.st_mode);
 
-    return CFURLCreateFromFileSystemRepresentation(alloc,path, strlen(path), isDir);
+    return CFURLCreateFromFileSystemRepresentation(alloc,(uint8_t *)path, strlen(path), isDir);
 }
 
 Boolean CFURLGetFSRef(CFURLRef urlref, FSRefPtr fsref)

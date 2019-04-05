@@ -14,6 +14,7 @@
 #import <dispatch/dispatch.h>
 #import <objc/runtime.h>
 #import <execinfo.h>
+#include <stdio.h>
 
 @interface NSException ()
 - (BOOL)_installStackTraceKeyIfNeeded;
@@ -22,7 +23,9 @@
 typedef id (*objc_exception_preprocessor)(id exception);
 extern objc_exception_preprocessor objc_setExceptionPreprocessor(objc_exception_preprocessor fn);
 
+#ifndef __i386__
 static NSException *__exceptionPreprocess(NSException *exception)
+
 {
 // this is quite expensive (1/3 sec lag), when it can be made more performant (under 1/60 sec) this should be re-enabled
 #if 0
@@ -30,6 +33,7 @@ static NSException *__exceptionPreprocess(NSException *exception)
 #endif
     return exception;
 }
+#endif
 
 static void NSExceptionInitializer() __attribute__((constructor));
 static void NSExceptionInitializer()
@@ -73,6 +77,17 @@ NSString *const NSFileHandleOperationException = @"NSFileHandleOperationExceptio
         userInfo = [aUserInfo copy];
     }
     return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return [NSException init];
 }
 
 - (id)copyWithZone:(NSZone *)zone

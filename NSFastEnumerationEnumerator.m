@@ -43,7 +43,8 @@
 
     if (state->mutationsPtr == NULL || *state->mutationsPtr != state->extra[0])
     {
-        [NSException raise:NSGenericException format:@"*** Collection <%s: 0x%x> was mutated while being enumerated", object_getClassName(_obj), _obj];
+        [NSException raise:NSGenericException format:@"*** Collection <%s: 0x%x> was mutated while being enumerated", 
+		object_getClassName(_obj), (unsigned int)_obj];
         return nil;
     }
 

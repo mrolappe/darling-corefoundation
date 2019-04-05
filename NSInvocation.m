@@ -63,7 +63,8 @@ id ___forwarding___(struct objc_sendv_margs *args, void *returnStorage)
 
     }
 
-    long long result = 0LL;
+    //long long result = 0LL;
+    
     id target = [self forwardingTargetForSelector:_cmd];
 
     if (target != nil && target != self)

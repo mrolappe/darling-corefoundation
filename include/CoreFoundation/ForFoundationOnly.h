@@ -555,7 +555,6 @@ extern kern_return_t _CFDiscorporateMemoryMaterialize(CFDiscorporateMemory *hm);
 #endif
 
 enum {
-    kCFNumberFormatterOrdinalStyle = 6,
     kCFNumberFormatterDurationStyle = 7,
 };
 

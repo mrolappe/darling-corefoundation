@@ -8,6 +8,7 @@
 #import "NSCalendarInternal.h"
 #import <Foundation/NSKeyValueObserving.h>
 #import "ForFoundationOnly.h"
+#include <stdio.h>
 
 typedef struct {
     NSUInteger unitFlags;
@@ -321,6 +322,34 @@ typedef struct {
         return [parts->calendar dateFromComponents:self];
     }
     return nil;
+}
+
+- (BOOL)isLeapMonth
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return false;
+}
+
+- (void)setLeapMonth:(BOOL)leapMonth
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+}
+
++ (BOOL)supportsSecureCoding
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return false;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return nil;
 }
 
 @end

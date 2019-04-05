@@ -8,7 +8,43 @@
 #import "NSSharedKeyDictionary.h"
 #import <Foundation/NSKeyValueObserving.h>
 
+#include <stdio.h>
+
+// FIXME: The below code doesn't work with the new generics NSDictionary.
+@interface NSDictionary (AvoidGenerics)
+- (void)getObjects:(id *)arg1 andKeys:(id *)arg2 count:(unsigned long long)arg3;
+@end
+
 @implementation NSSharedKeyDictionary
+
+- (id)initWithCoder:(NSCoder *)coder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return [NSSharedKeyDictionary init];
+}
+
+- (void)encodeWithCoder:(NSCoder *)coder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+}
+
+- (Class)classForCoder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return [NSObject class];
+}
+
+- (id)mutableCopyWithZone:(NSZone *)zone
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return nil;
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return nil;
+}
 
 + (id)sharedKeyDictionaryWithKeySet:(NSSharedKeySet *)keySet
 {
@@ -90,6 +126,7 @@
     }
 }
 
+// FIXME: Overriding a method in a category? Undefined behavior!
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id __unsafe_unretained [])buffer count:(NSUInteger)len
 {
     NSUInteger sideCount = [_sideDic count];

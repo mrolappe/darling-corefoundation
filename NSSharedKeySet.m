@@ -7,6 +7,7 @@
 
 #import "NSSharedKeySet.h"
 
+#include <stdio.h>
 
 @implementation NSSharedKeySet
 
@@ -24,6 +25,23 @@
 {
     return [self initWithKeys:NULL count:0];
 }
+
+- (id)initWithCoder:(NSCoder *)coder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+	return [NSSharedKeySet init];
+}
+
+- (void)encodeWithCoder:(NSCoder *)coder
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+}
+
+- (void)createSubclassCode:(NSString *)subclassName interface:(CFStringRef *)interface implementation:(CFStringRef *)implementation
+{
+	printf("STUB %s", __PRETTY_FUNCTION__);
+}
+
 
 - (id)initWithKeys:(id *)keys count:(NSUInteger)count
 {

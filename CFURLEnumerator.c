@@ -142,7 +142,7 @@ static CFIndex CFURLEnumeratorPushURL(CFURLEnumeratorRef enumerator, CFURLRef ur
             continue;
         }
         CFMutableDictionaryRef fileInfo = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-        CFStringRef fileName = CFStringCreateWithBytes(kCFAllocatorDefault, current->d_name, strlen(current->d_name), kCFStringEncodingUTF8, false);
+        CFStringRef fileName = CFStringCreateWithBytes(kCFAllocatorDefault, (uint8_t *)current->d_name, strlen(current->d_name), kCFStringEncodingUTF8, false);
         CFDictionarySetValue(fileInfo, fileInfoNameKey, fileName);
         CFDictionarySetValue(fileInfo, fileInfoIsDirKey, current->d_type == DT_DIR ? kCFBooleanTrue : kCFBooleanFalse);
         CFArrayAppendValue(fileInfos, fileInfo);

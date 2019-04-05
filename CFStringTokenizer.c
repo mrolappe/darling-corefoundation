@@ -10,6 +10,8 @@
 #include "CFStringTokenizer.h"
 #include <unicode/ubrk.h>
 
+#include <stdio.h>
+
 #define TYPE_MASK 0x000000FF
 
 struct __CFStringTokenizer {
@@ -142,7 +144,9 @@ CFStringRef CFStringTokenizerCopyBestStringLanguage(CFStringRef string, CFRange 
 
 void CFStringTokenizerSetString(CFStringTokenizerRef tokenizer, CFStringRef string, CFRange range) {
 
-#warning TODO: range is not handled currently
+    // TODO: range is not handled currently
+
+    printf("range is not handled currently %s\n", __PRETTY_FUNCTION__);
 
     UChar stack_text[BUFFER_SIZE] = { 0 };
     UChar *text = &stack_text[0];
