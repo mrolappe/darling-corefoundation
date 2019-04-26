@@ -2045,7 +2045,7 @@ CFIndex CFStringGetBytes(CFStringRef str, CFRange range, CFStringEncoding encodi
 
     __CFAssertIsNotNegative(maxBufLen);
     
-    {
+    if (!CF_IS_OBJC(__kCFStringTypeID, str)) {
         __CFAssertIsString(str);
         __CFAssertRangeIsInStringBounds(str, range.location, range.length);
 
