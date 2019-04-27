@@ -1703,7 +1703,7 @@ static void _CFRelease(CFTypeRef cf) {
 	    Boolean isValidObjCObject = ((CFRuntimeBase *) cf)->_cfisa != 0;
 	    if (isValidObjCObject) {
 	        if (__CFZombieEnabled) {
-	            [cf dealloc];
+	            [(id)cf dealloc];
 	            return;
 	        } else {
 	            objc_destructInstance(cf);
