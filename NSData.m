@@ -6,15 +6,8 @@
 //
 
 #import <CoreFoundation/CFData.h>
-//#import <Foundation/NSData.h>
+#import <Foundation/NSData.h>
 #import "CFPriv.h"
-#import <Foundation/NSObject.h>
-
-@interface NSData : NSObject
-@end
-
-@interface NSMutableData : NSData
-@end
 
 @implementation NSData
 @end

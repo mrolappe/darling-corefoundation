@@ -85,17 +85,6 @@ CF_PRIVATE
     return array;
 }
 
-- (void)encodeWithCoder:(NSCoder *)aCoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return [[NSArray alloc] init];
-}
-
 - (NSUInteger)count
 {
     NSRequestConcreteImplementation();
@@ -202,17 +191,6 @@ CF_PRIVATE
 
 @implementation NSMutableArray
 
-- (instancetype)init
-{
-	return [super init];
-}
-
-- (instancetype)initWithCapacity:(NSUInteger)numItems
-{
-	printf("Not actually initializing with capacity");
-	return [NSMutableArray init];
-}
-
 - (void)addObject:(id)obj
 {
     [self insertObject:obj atIndex:[self count]];
@@ -314,8 +292,7 @@ CF_PRIVATE
         objs = malloc(sizeof(id) * count);
         if (objs == NULL)
         {
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("unable to allocate space to store %lu objects"), (unsigned long)count);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("unable to allocate space to store %d objects"), count);
             @throw [NSException exceptionWithName:NSMallocException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
             return;
@@ -335,8 +312,7 @@ CF_PRIVATE
 {
     if (idx > [self count])
     {
-        [NSException raise:NSInvalidArgumentException
-		    format:@"index %lu is out of bounds of count %lu for array", (unsigned long)idx, (unsigned long)[self count]];
+        [NSException raise:NSInvalidArgumentException format:@"index %d is out of bounds of count %d for array", idx, [self count]];
         return;
     }
     NSUInteger i = 0;
@@ -367,8 +343,7 @@ CF_PRIVATE
     NSUInteger count = [self count];
     if (idx1 >= count || idx2 >= count)
     {
-        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			CFSTR("index (%lu) beyond array bounds (%lu)"), (unsigned long)MAX(idx1, idx2), (unsigned long)count);
+        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("index (%d) beyond array bounds (%d)"), MAX(idx1, idx2), count);
         @throw [NSException exceptionWithName:NSRangeException reason:(NSString *)reason userInfo:nil];
         CFRelease(reason);
         return;
@@ -400,9 +375,7 @@ CF_PRIVATE
     NSUInteger count = [self count];
     if (NSMaxRange(range) > count)
     {
-        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			CFSTR("range {%lu, %lu} beyond array bounds (%lu)"),
-			(unsigned long)range.location, (unsigned long)range.length, (unsigned long)count);
+        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("range {%d, %d} beyond array bounds (%d)"), range.location, range.length, count);
         @throw [NSException exceptionWithName:NSRangeException reason:(NSString *)reason userInfo:nil];
         CFRelease(reason);
         return;
@@ -506,8 +479,7 @@ CF_PRIVATE
         objs = malloc(sizeof(id) * count);
         if (objs == NULL)
         {
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("unable to allocate space to store %lu objects"), (unsigned long)count);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("unable to allocate space to store %d objects"), count);
             @throw [NSException exceptionWithName:NSMallocException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
             return;
@@ -534,8 +506,7 @@ CF_PRIVATE
         objs = malloc(sizeof(id) * count);
         if (objs == NULL)
         {
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("unable to allocate space to store %lu objects"), (unsigned long)count);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("unable to allocate space to store %d objects"), count);
             @throw [NSException exceptionWithName:NSMallocException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
             return;
@@ -562,8 +533,7 @@ CF_PRIVATE
         objs = malloc(sizeof(id) * count);
         if (objs == NULL)
         {
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("unable to allocate space to store %lu objects"), (unsigned long)count);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("unable to allocate space to store %d objects"), count);
             @throw [NSException exceptionWithName:NSMallocException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
             return;
@@ -599,11 +569,9 @@ CF_PRIVATE
     NSUInteger count = [objects count];
     if (count != [indices count])
     {
-        //CFStringRef format = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("indices specifies count of %d and objects specifies %d; one of them is wrong"), [indices count], count);
-        [NSException raise:NSInvalidArgumentException
-		    format:@"indices specifies count of %lu and objects specifies %lu; one of them is wrong",
-		(unsigned long)[indices count], (unsigned long)count];
-        //CFRelease(format);
+        CFStringRef format = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("indices specifies count of %d and objects specifies %d; one of them is wrong"), [indices count], count);
+        [NSException raise:NSInvalidArgumentException format:(NSString *)format];
+        CFRelease(format);
         return;
     }
 
@@ -634,11 +602,9 @@ CF_PRIVATE
     NSUInteger count = [objects count];
     if (count != [indices count])
     {
-        //CFStringRef format = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("indices specifies count of %d and objects specifies %d; one of them is wrong"), [indices count], count);
-        [NSException raise:NSInvalidArgumentException
-		    format:@"indices specifies count of %lu and objects specifies %lu; one of them is wrong",
-		(unsigned long)[indices count], (unsigned long)count];
-        //CFRelease(format);
+        CFStringRef format = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("indices specifies count of %d and objects specifies %d; one of them is wrong"), [indices count], count);
+        [NSException raise:NSInvalidArgumentException format:(NSString *)format];
+        CFRelease(format);
         return;
     }
     while (currentIndex != NSNotFound)
@@ -725,36 +691,13 @@ CF_PRIVATE
     return [[[self alloc] initWithCapacity:numItems] autorelease];
 }
 
-/*
 - (id)initWithCapacity:(NSUInteger)numItems
 {
     NSRequestConcreteImplementation();
     [self release];
     return nil;
 }
-*/
 
-- (NSMutableArray*)initWithContentsOfFile:(NSString *)path
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (NSMutableArray*)arrayWithContentsOfURL:(NSURL *)url
-{
-	return [[NSMutableArray alloc] initWithContentsOfURL:url];
-}
-
-- (NSMutableArray*)initWithContentsOfURL:(NSURL *)url
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (NSMutableArray *)arrayWithContentsOfFile:(NSString *)path
-{
-	return [[NSMutableArray alloc] initWithContentsOfFile:path];
-}
 
 - (id)initWithObjects:(const id [])objects count:(NSUInteger)cnt
 {
@@ -859,8 +802,7 @@ SINGLETON_RR()
 {
     if (self == mutablePlaceholder)
     {
-        NSCapacityCheck(capacity, 0x40000000,
-			@"Please rethink the size of the capacity of the array you are creating: %lu seems a bit exessive", (unsigned long)capacity);
+        NSCapacityCheck(capacity, 0x40000000, @"Please rethink the size of the capacity of the array you are creating: %d seems a bit exessive", capacity);
         return (id)CFArrayCreateMutable(kCFAllocatorDefault, capacity, &sNSCFArrayCallBacks);
     }
     else
@@ -974,7 +916,7 @@ SINGLETON_RR()
 - (NSString *)descriptionWithLocale:(id)locale indent:(NSUInteger)level
 {
     CFMutableStringRef description = CFStringCreateMutable(kCFAllocatorDefault, 0);
-    CFStringAppendFormat(description, NULL, CFSTR("%*s(\n"), (int)level * (int)strlen(INDENT), "");
+    CFStringAppendFormat(description, NULL, CFSTR("%*s(\n"), (int)level * strlen(INDENT), "");
     NSUInteger count = [self count];
     for (id obj in self)
     {
@@ -994,15 +936,15 @@ SINGLETON_RR()
         count--;
         if (count == 0) // No comma
         {
-            CFStringAppendFormat(description, NULL, CFSTR("%*s%@\n"), ((int)level + 1) * (int)strlen(INDENT), "", valueDescription);
+            CFStringAppendFormat(description, NULL, CFSTR("%*s%@\n"), ((int)level + 1) * strlen(INDENT), "", valueDescription);
             break;
         }
         else
         {
-            CFStringAppendFormat(description, NULL, CFSTR("%*s%@,\n"), ((int)level + 1) * (int)strlen(INDENT), "", valueDescription);
+            CFStringAppendFormat(description, NULL, CFSTR("%*s%@,\n"), ((int)level + 1) * strlen(INDENT), "", valueDescription);
         }
     }
-    CFStringAppendFormat(description, NULL, CFSTR("%*s)"), (int)level * (int)strlen(INDENT), "");
+    CFStringAppendFormat(description, NULL, CFSTR("%*s)"), (int)level * strlen(INDENT), "");
     CFStringRef desc = CFStringCreateCopy(kCFAllocatorDefault, description);
     CFRelease(description);
     return [(NSString *)desc autorelease];
@@ -1168,8 +1110,9 @@ SINGLETON_RR()
     if (cmptr == nil)
     {
         [self doesNotRecognizeSelector:_cmd];
-        [NSException raise:NSInvalidArgumentException format:@"-[%s <null selector>] unrecognized selector 0x%x",
-		object_getClassName(self), (unsigned int)self];
+        CFStringRef format = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("-[%s <null selector>] unrecognized selector 0x%x"), object_getClassName(self), self);
+        [NSException raise:NSInvalidArgumentException format:(NSString *)format];
+        CFRelease(format);
         return nil;
     }
 
@@ -1184,8 +1127,7 @@ SINGLETON_RR()
         objs = malloc(sizeof(id) * count);
         if (objs == NULL)
         {
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("unable to allocate space to store %lu objects"), (unsigned long)count);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("unable to allocate space to store %d objects"), count);
             @throw [NSException exceptionWithName:NSMallocException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
             return nil;
@@ -1193,8 +1135,7 @@ SINGLETON_RR()
         indexes = malloc(sizeof(CFIndex) * count);
         if (indexes == NULL)
         {
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("unable to allocate space to store %lu indices"), (unsigned long)count);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("unable to allocate space to store %d indices"), count);
             @throw [NSException exceptionWithName:NSMallocException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
             return nil;
@@ -1231,7 +1172,7 @@ SINGLETON_RR()
 
 - (NSArray *)sortedArrayUsingFunction:(NSInteger (*)(id, id, void *))comparator context:(void *)context hint:(NSData *)hint
 {
-// TODO:  USE HINT
+#warning TODO:  USE HINT
     return [self sortedArrayFromRange:NSMakeRange(0, [self count]) options:0 usingComparator: ^(id obj1, id obj2){
         return comparator(obj1, obj2, context);
     }];
@@ -1615,8 +1556,7 @@ SINGLETON_RR()
     NSUInteger count = [self count];
     if (NSMaxRange(r) > count)
     {
-        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			CFSTR("range {%lu, %lu} beyond array bounds (%lu)"), (unsigned long)r.location, (unsigned long)r.length, (unsigned long)count);
+        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("range {%d, %d} beyond array bounds (%d)"), r.location, r.length, count);
         @throw [NSException exceptionWithName:NSRangeException reason:(NSString *)reason userInfo:nil];
         CFRelease(reason);
         return 0;
@@ -1914,8 +1854,7 @@ SINGLETON_RR()
     {
         if (index >= [self count])
         {
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("index (%lu) beyond array bounds (%lu)"), (unsigned long)index, (unsigned long)[self count]);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("index (%d) beyond array bounds (%d)"), index, [self count]);
             @throw [NSException exceptionWithName:NSRangeException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
         }
@@ -1933,12 +1872,12 @@ SINGLETON_RR()
     {
         if (index > CFArrayGetCount((CFArrayRef)self))
         {
-            [NSException raise:NSRangeException format:@"%lu is out of bounds of array", (unsigned long)index];
+            [NSException raise:NSRangeException format:@"%d is out of bounds of array", index];
         }
 
         if (obj == nil)
         {
-            [NSException raise:NSInvalidArgumentException format:@"Attempt to insert nil object at index %lu", (unsigned long)index];
+            [NSException raise:NSInvalidArgumentException format:@"Attempt to insert nil object at index %d", index];
         }
 
         CFArraySetValueAtIndex((CFMutableArrayRef)self, index, obj);
@@ -1953,15 +1892,14 @@ SINGLETON_RR()
 {
     if (obj == nil)
     {
-        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("Attempt to insert nil object at index %lu"), (unsigned long)index);
+        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("Attempt to insert nil object at index %d"), index);
         @throw [NSException exceptionWithName:NSInvalidArgumentException reason:(NSString *)reason userInfo:nil];
         CFRelease(reason);
     }
     if (_CFArrayIsMutable((CFArrayRef)self))
     {
         if(index > self.count) {
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("*** %s: index %lu beyond bounds [0 .. %lu]"),__PRETTY_FUNCTION__,(unsigned long)index,(unsigned long)self.count - 1);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("*** %s: index %d beyond bounds [0 .. %d]"),__PRETTY_FUNCTION__,index,self.count - 1);
             @throw [NSException exceptionWithName:NSRangeException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
         }
@@ -1984,8 +1922,7 @@ SINGLETON_RR()
     const void *value = _CFArrayCheckAndGetValueAtIndex((CFArrayRef)self, index);
     if (value == (void *)-1) // this is flawed logic, but it is conformant ... you technically could store (void *)-1 as a value in a CFArray and then toll free bridge access it (even though it is silly to do so)
     {
-        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			CFSTR("index (%lu) beyond array bounds (%lu)"), (unsigned long)index, (unsigned long)[self count]);
+        CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("index (%d) beyond array bounds (%d)"), index, [self count]);
         @throw [NSException exceptionWithName:NSRangeException reason:(NSString *)reason userInfo:nil];
         CFRelease(reason);
         return nil;
@@ -2236,7 +2173,7 @@ SINGLETON_RR()
     }
     else
     {
-        [NSException raise:NSRangeException format:@"%lu is out of bounds of array", (unsigned long)index];
+        [NSException raise:NSRangeException format:@"%d is out of bounds of array", index];
         return nil;
     }
 }

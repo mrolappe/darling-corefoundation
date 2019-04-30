@@ -125,8 +125,7 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
     case kCFNumberFormatterScientificStyle: ustyle = UNUM_SCIENTIFIC; break;
     case kCFNumberFormatterSpellOutStyle: ustyle = UNUM_SPELLOUT; break;
     case kCFNumberFormatterOrdinalStyle: ustyle = UNUM_ORDINAL; break;
-    // Not in SDK
-    //case kCFNumberFormatterDurationStyle: ustyle = UNUM_DURATION; break;
+    case kCFNumberFormatterDurationStyle: ustyle = UNUM_DURATION; break;
     default:
 	CFAssert2(0, __kCFLogAssertion, "%s(): unknown style %d", __PRETTY_FUNCTION__, style);
 	ustyle = UNUM_DECIMAL;
@@ -756,11 +755,6 @@ Boolean CFNumberFormatterGetValueFromString(CFNumberFormatterRef formatter, CFSt
 	    return true;
 	}
 	break;
-    case kCFNumberNSIntegerType:
-    case kCFNumberCGFloatType:
-    default:
-    printf("Unhandled CFNumber types %s\n", __PRETTY_FUNCTION__);
-    return false;
     }
     return false;
 }

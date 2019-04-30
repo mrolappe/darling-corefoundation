@@ -12,7 +12,7 @@
 
 // Forgive me, the loader is not merging NSStrings/CFStrings correctly
 // This is a VERY hacky workaround.
-// TODO: FIXME https://code.google.com/p/apportable/issues/detail?id=370
+#warning https://code.google.com/p/apportable/issues/detail?id=370
 
 NSString *NSDefaultRunLoopMode = nil;
 NSString *NSRunLoopCommonModes = nil;

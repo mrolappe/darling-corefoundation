@@ -19,8 +19,6 @@
 #import "NSObjectInternal.h"
 #import "NSStringInternal.h"
 
-#include <stdio.h>
-
 CF_EXPORT Boolean _CFDictionaryIsMutable(CFDictionaryRef ref);
 CF_EXPORT void _CFDictionarySetKVOBit(CFDictionaryRef hc, CFIndex bit);
 CF_EXPORT NSUInteger _CFDictionaryFastEnumeration(CFDictionaryRef hc, NSFastEnumerationState *state, id __unsafe_unretained stackbuffer[], NSUInteger count);
@@ -86,17 +84,6 @@ CF_PRIVATE
     }
 
     return dictionary;
-}
-
-- (void)encodeWithCoder:(NSCoder *)aCoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return [NSDictionary init];
 }
 
 - (NSUInteger)count
@@ -300,8 +287,7 @@ SINGLETON_RR()
 {
     if (self == mutablePlaceholder)
     {
-        NSCapacityCheck(capacity, 0x40000000,
-			@"Please rethink the size of the capacity of the dictionary you are creating: %lu seems a bit exessive", (unsigned long)capacity);
+        NSCapacityCheck(capacity, 0x40000000, @"Please rethink the size of the capacity of the dictionary you are creating: %d seems a bit exessive", capacity);
         return (id)CFDictionaryCreateMutable(kCFAllocatorDefault, capacity, &sNSCFDictionaryKeyCallBacks, &sNSCFDictionaryValueCallBacks);
     }
     else
@@ -676,8 +662,7 @@ SINGLETON_RR()
 
     if (objectCount != keyCount)
     {
-        [NSException raise:NSInvalidArgumentException
-		    format:@"Object and key arrays have different number of elements (%lu and %lu)", (unsigned long)objectCount, (unsigned long)keyCount];
+        [NSException raise:NSInvalidArgumentException format:@"Object and key arrays have different number of elements (%d and %d)", objectCount, keyCount];
         return nil;
     }
 
@@ -731,12 +716,6 @@ SINGLETON_RR()
 
 
 @implementation NSDictionary (NSExtendedDictionary)
-
-- (NSString *)descriptionInStringsFileFormat
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
 
 - (void)__apply:(void (*)(const void *, const void *, void *))applier context:(void *)context
 {
@@ -829,7 +808,7 @@ static NSString *_getDescription(id obj, id locale, int level)
 - (NSString *)descriptionWithLocale:(id)locale indent:(NSUInteger)level
 {
     CFMutableStringRef description = CFStringCreateMutable(kCFAllocatorDefault, 0);
-    CFStringAppendFormat(description, NULL, CFSTR("%*s{\n"), (int)level * (int)strlen(INDENT), "");
+    CFStringAppendFormat(description, NULL, CFSTR("%*s{\n"), (int)level * strlen(INDENT), "");
     int count = [self count];
     id *keys = (id *)malloc(sizeof(id) * count);
     [self getObjects:nil andKeys:keys];
@@ -862,7 +841,7 @@ static NSString *_getDescription(id obj, id locale, int level)
             id value = [self objectForKey:key];
             NSString *valueDescription = _getDescription(value, locale, level);
             NSString *keyDescription = _getDescription(key, locale, level);
-            CFStringAppendFormat(description, NULL, CFSTR("%*s%@ = %@;\n"), ((int)level + 1)  * (int)strlen(INDENT), "", keyDescription, valueDescription);
+            CFStringAppendFormat(description, NULL, CFSTR("%*s%@ = %@;\n"), ((int)level + 1)  * strlen(INDENT), "", keyDescription, valueDescription);
         }
 
         free(indexes);
@@ -875,10 +854,10 @@ static NSString *_getDescription(id obj, id locale, int level)
             id value = [self objectForKey:key];
             NSString *valueDescription = _getDescription(value, locale, level);
             NSString *keyDescription = _getDescription(key, locale, level);
-            CFStringAppendFormat(description, NULL, CFSTR("%*s%@ = %@;\n"), ((int)level + 1)  * (int)strlen(INDENT), "", keyDescription, valueDescription);
+            CFStringAppendFormat(description, NULL, CFSTR("%*s%@ = %@;\n"), ((int)level + 1)  * strlen(INDENT), "", keyDescription, valueDescription);
         }
     }
-    CFStringAppendFormat(description, NULL, CFSTR("%*s}"), (int)level * (int)strlen(INDENT), "");
+    CFStringAppendFormat(description, NULL, CFSTR("%*s}"), (int)level * strlen(INDENT), "");
     CFStringRef desc = CFStringCreateCopy(kCFAllocatorDefault, description);
     CFRelease(description);
     free(keys);

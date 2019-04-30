@@ -1,8 +1,8 @@
 //
-//	NSURL.m
-//	CoreFoundation
+//  NSURL.m
+//  CoreFoundation
 //
-//	Copyright (c) 2014 Apportable. All rights reserved.
+//  Copyright (c) 2014 Apportable. All rights reserved.
 //
 
 #import <Foundation/NSURL.h>
@@ -16,8 +16,6 @@
 #import "NSURLInternal.h"
 #import <objc/runtime.h>
 #include <sys/stat.h>
-
-#include <stdio.h>
 
 #define STACK_BUFFER_SIZE 100 // pretty safe bet this will be quite unlikely to use more than this since there are only 94 properties
 
@@ -141,1109 +139,890 @@ NSString *const NSURLVolumeSupportsCompressionKey = @"NSURLVolumeSupportsCompres
 
 
 static void posixError(CFErrorRef *error) {
-	const CFStringRef keys[1] = {
-		kCFErrorUnderlyingErrorKey,
-	};
-	CFStringRef err = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%s"), strerror(errno));
-	CFTypeRef values[1] = {
-		err,
-	};
+    const CFStringRef keys[1] = {
+        kCFErrorUnderlyingErrorKey,
+    };
+    CFStringRef err = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%s"), strerror(errno));
+    CFTypeRef values[1] = {
+        err,
+    };
 
-	if (error != NULL)
-	{
-		*error = CFErrorCreateWithUserInfoKeysAndValues(kCFAllocatorDefault, kCFErrorDomainPOSIX, errno, (const void *const *)keys, (const void *const *)values, 1);
-	}
+    if (error != NULL)
+    {
+        *error = CFErrorCreateWithUserInfoKeysAndValues(kCFAllocatorDefault, kCFErrorDomainPOSIX, errno, (const void *const *)keys, (const void *const *)values, 1);
+    }
 
-	CFRelease(err);
+    CFRelease(err);
 }
 
 static Boolean CFURLStat(CFURLRef url, struct stat *info) {
-	UInt8 path[PATH_MAX] = { 0 };
+    UInt8 path[PATH_MAX] = { 0 };
 
-	if (CFURLGetFileSystemRepresentation(url, true, path, PATH_MAX))
-	{
-		return stat((const char *)path, info) != -1;
-	}
+    if (CFURLGetFileSystemRepresentation(url, true, path, PATH_MAX))
+    {
+        return stat(path, info) != -1;
+    }
 
-	return false;
+    return false;
 }
 
 static pthread_mutex_t resInfoLock = PTHREAD_MUTEX_INITIALIZER;
 
 static CFTypeRef CFURLCreatePropertyForKey(CFURLRef url, CFStringRef key, CFErrorRef *error)
 {
-	CFTypeRef value = NULL;
-	struct stat info;
-	// NOTE: not all of the properties are currently supported, however the most common ones should have quasi-reasonable implementations
-	if (CFEqual(key, kCFURLNameKey))
-	{
-		//Key for the resource’s name in the file system, returned as a CFString object.
-		CFURLRef trimmed = CFURLCreateCopyDeletingPathExtension(kCFAllocatorDefault, url);
-		value = CFURLCopyLastPathComponent(trimmed);
-		CFRelease(trimmed);
-	}
-	else if (CFEqual(key, kCFURLLocalizedNameKey))
-	{
-		// Key for the resource’s localized or extension-hidden name, retuned as a CFString object.
-		CFURLRef trimmed = CFURLCreateCopyDeletingPathExtension(kCFAllocatorDefault, url);
-		value = CFURLCopyLastPathComponent(trimmed); // this should be localized
-		CFRelease(trimmed);
-	}
-	else if (CFEqual(key, kCFURLPathKey))
-	{
-		// A CFString value containing the URL’s path as a file system path. (read-only)
-		value = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle);
-	}
-	else if (CFEqual(key, kCFURLIsRegularFileKey))
-	{
-		// Key for determining whether the resource is a regular file, as opposed to a directory or a symbolic link. Returned as a CFBoolean object.
-		if (CFURLStat(url, &info))
-		{
-			value = S_ISREG(info.st_mode) ? kCFBooleanTrue : kCFBooleanFalse;
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLIsDirectoryKey))
-	{
-		// Key for determining whether the resource is a directory, returned as a CFBoolean object.
-		if (CFURLStat(url, &info))
-		{
-			value = S_ISDIR(info.st_mode) ? kCFBooleanTrue : kCFBooleanFalse;
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLIsSymbolicLinkKey))
-	{
-		// Key for determining whether the resource is a directory, returned as a CFBoolean object.
-		if (CFURLStat(url, &info))
-		{
-			value = S_ISLNK(info.st_mode) ? kCFBooleanTrue : kCFBooleanFalse;
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLIsVolumeKey))
-	{
-		// is this doable?
-	}
-	else if (CFEqual(key, kCFURLIsPackageKey))
-	{
-		// is this doable?
-	}
-	else if (CFEqual(key, kCFURLIsSystemImmutableKey))
-	{
-		// Key for determining whether the resource's system immutable bit is set, returned as a CFBoolean object.
-		if (CFURLStat(url, &info))
-		{
-			value = (info.st_mode & S_IWOTH) != S_IWOTH ? kCFBooleanTrue : kCFBooleanFalse;
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLIsUserImmutableKey))
-	{
-		// Key for determining whether the resource's user immutable bit is set, returned as a CFBoolean object.
-		if (CFURLStat(url, &info))
-		{
-			value = (info.st_mode & S_IWUSR) != S_IWUSR ? kCFBooleanTrue : kCFBooleanFalse;
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLIsHiddenKey))
-	{
-		CFStringRef lastPathComp = CFURLCopyLastPathComponent(url);
-		Boolean isHidden = false;
+    CFTypeRef value = NULL;
+    struct stat info;
+    // NOTE: not all of the properties are currently supported, however the most common ones should have quasi-reasonable implementations
+    if (CFEqual(key, kCFURLNameKey))
+    {
+        //Key for the resource’s name in the file system, returned as a CFString object.
+        CFURLRef trimmed = CFURLCreateCopyDeletingPathExtension(kCFAllocatorDefault, url);
+        value = CFURLCopyLastPathComponent(trimmed);
+        CFRelease(trimmed);
+    }
+    else if (CFEqual(key, kCFURLLocalizedNameKey))
+    {
+        // Key for the resource’s localized or extension-hidden name, retuned as a CFString object.
+        CFURLRef trimmed = CFURLCreateCopyDeletingPathExtension(kCFAllocatorDefault, url);
+        value = CFURLCopyLastPathComponent(trimmed); // this should be localized
+        CFRelease(trimmed);
+    }
+    else if (CFEqual(key, kCFURLPathKey))
+    {
+        // A CFString value containing the URL’s path as a file system path. (read-only)
+        value = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle);
+    }
+    else if (CFEqual(key, kCFURLIsRegularFileKey))
+    {
+        // Key for determining whether the resource is a regular file, as opposed to a directory or a symbolic link. Returned as a CFBoolean object.
+        if (CFURLStat(url, &info))
+        {
+            value = S_ISREG(info.st_mode) ? kCFBooleanTrue : kCFBooleanFalse;
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLIsDirectoryKey))
+    {
+        // Key for determining whether the resource is a directory, returned as a CFBoolean object.
+        if (CFURLStat(url, &info))
+        {
+            value = S_ISDIR(info.st_mode) ? kCFBooleanTrue : kCFBooleanFalse;
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLIsSymbolicLinkKey))
+    {
+        // Key for determining whether the resource is a directory, returned as a CFBoolean object.
+        if (CFURLStat(url, &info))
+        {
+            value = S_ISLNK(info.st_mode) ? kCFBooleanTrue : kCFBooleanFalse;
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLIsVolumeKey))
+    {
+        // is this doable?
+    }
+    else if (CFEqual(key, kCFURLIsPackageKey))
+    {
+        // is this doable?
+    }
+    else if (CFEqual(key, kCFURLIsSystemImmutableKey))
+    {
+        // Key for determining whether the resource's system immutable bit is set, returned as a CFBoolean object.
+        if (CFURLStat(url, &info))
+        {
+            value = (info.st_mode & S_IWOTH) != S_IWOTH ? kCFBooleanTrue : kCFBooleanFalse;
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLIsUserImmutableKey))
+    {
+        // Key for determining whether the resource's user immutable bit is set, returned as a CFBoolean object.
+        if (CFURLStat(url, &info))
+        {
+            value = (info.st_mode & S_IWUSR) != S_IWUSR ? kCFBooleanTrue : kCFBooleanFalse;
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLIsHiddenKey))
+    {
+        CFStringRef lastPathComp = CFURLCopyLastPathComponent(url);
+        Boolean isHidden = false;
 
-		if (CFStringGetLength(lastPathComp) > 0)
-		{
-			isHidden = CFStringGetCharacterAtIndex(lastPathComp, 0) == '.';
-		}
+        if (CFStringGetLength(lastPathComp) > 0)
+        {
+            isHidden = CFStringGetCharacterAtIndex(lastPathComp, 0) == '.';
+        }
 
-		value = isHidden ? kCFBooleanTrue : kCFBooleanFalse;
-		CFRelease(lastPathComp);
-	}
-	else if (CFEqual(key, kCFURLHasHiddenExtensionKey))
-	{
-		value = kCFBooleanFalse;
-	}
-	else if (CFEqual(key, kCFURLCreationDateKey))
-	{
-		// Key for the resource’s creation date, returned as a CFDate object if the volume supports creation dates, or nil if creation dates are unsupported.
-		if (CFURLStat(url, &info))
-		{
-			CFTimeInterval t = (CFTimeInterval)(info.st_ctime * NSEC_PER_SEC + info.st_ctimespec.tv_nsec) / (CFTimeInterval)NSEC_PER_SEC;
-			value = CFDateCreate(kCFAllocatorDefault, t);
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLContentAccessDateKey))
-	{
-		if (CFURLStat(url, &info))
-		{
-			CFTimeInterval t = (CFTimeInterval)(info.st_atime * NSEC_PER_SEC + info.st_atimespec.tv_nsec) / (CFTimeInterval)NSEC_PER_SEC;
-			value = CFDateCreate(kCFAllocatorDefault, t);
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLContentModificationDateKey))
-	{
-		if (CFURLStat(url, &info))
-		{
-			CFTimeInterval t = (CFTimeInterval)(info.st_mtime * NSEC_PER_SEC + info.st_mtimespec.tv_nsec) / (CFTimeInterval)NSEC_PER_SEC;
-			value = CFDateCreate(kCFAllocatorDefault, t);
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLAttributeModificationDateKey))
-	{
-		if (CFURLStat(url, &info))
-		{
-			CFTimeInterval t = (CFTimeInterval)(info.st_mtime * NSEC_PER_SEC + info.st_mtimespec.tv_nsec) / (CFTimeInterval)NSEC_PER_SEC;
-			value = CFDateCreate(kCFAllocatorDefault, t);
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLLinkCountKey))
-	{
-		// Key for the number of hard links to the resource, returned as a CFNumber object.
-		if (CFURLStat(url, &info))
-		{
-			value = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &info.st_nlink);
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLParentDirectoryURLKey))
-	{
-		// Key for the parent directory of the resource, returned as a CFURL object, or nil if the resource is the root directory of its volume.
-		value = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault, url);
-	}
-	else if (CFEqual(key, kCFURLVolumeURLKey))
-	{
-		// is this doable?
-	}
-	else if (CFEqual(key, kCFURLTypeIdentifierKey))
-	{
-		// Key for the resource’s uniform type identifier (UTI), returned as a CFString object.
+        value = isHidden ? kCFBooleanTrue : kCFBooleanFalse;
+        CFRelease(lastPathComp);
+    }
+    else if (CFEqual(key, kCFURLHasHiddenExtensionKey))
+    {
+        value = kCFBooleanFalse;
+    }
+    else if (CFEqual(key, kCFURLCreationDateKey))
+    {
+        // Key for the resource’s creation date, returned as a CFDate object if the volume supports creation dates, or nil if creation dates are unsupported.
+        if (CFURLStat(url, &info))
+        {
+            CFTimeInterval t = (CFTimeInterval)(info.st_ctime * NSEC_PER_SEC + info.st_ctimespec.tv_nsec) / (CFTimeInterval)NSEC_PER_SEC;
+            value = CFDateCreate(kCFAllocatorDefault, t);
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLContentAccessDateKey))
+    {
+        if (CFURLStat(url, &info))
+        {
+            CFTimeInterval t = (CFTimeInterval)(info.st_atime * NSEC_PER_SEC + info.st_atimespec.tv_nsec) / (CFTimeInterval)NSEC_PER_SEC;
+            value = CFDateCreate(kCFAllocatorDefault, t);
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLContentModificationDateKey))
+    {
+        if (CFURLStat(url, &info))
+        {
+            CFTimeInterval t = (CFTimeInterval)(info.st_mtime * NSEC_PER_SEC + info.st_mtimespec.tv_nsec) / (CFTimeInterval)NSEC_PER_SEC;
+            value = CFDateCreate(kCFAllocatorDefault, t);
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLAttributeModificationDateKey))
+    {
+        if (CFURLStat(url, &info))
+        {
+            CFTimeInterval t = (CFTimeInterval)(info.st_mtime * NSEC_PER_SEC + info.st_mtimespec.tv_nsec) / (CFTimeInterval)NSEC_PER_SEC;
+            value = CFDateCreate(kCFAllocatorDefault, t);
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLLinkCountKey))
+    {
+        // Key for the number of hard links to the resource, returned as a CFNumber object.
+        if (CFURLStat(url, &info))
+        {
+            value = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &info.st_nlink);
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLParentDirectoryURLKey))
+    {
+        // Key for the parent directory of the resource, returned as a CFURL object, or nil if the resource is the root directory of its volume.
+        value = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault, url);
+    }
+    else if (CFEqual(key, kCFURLVolumeURLKey))
+    {
+        // is this doable?
+    }
+    else if (CFEqual(key, kCFURLTypeIdentifierKey))
+    {
+        // Key for the resource’s uniform type identifier (UTI), returned as a CFString object.
 
-	}
-	else if (CFEqual(key, kCFURLLocalizedTypeDescriptionKey))
-	{
-		// Key for the resource’s localized type description, returned as a CFString object.
+    }
+    else if (CFEqual(key, kCFURLLocalizedTypeDescriptionKey))
+    {
+        // Key for the resource’s localized type description, returned as a CFString object.
 
-	}
-	else if (CFEqual(key, kCFURLLabelNumberKey))
-	{
-		// Key for the resource’s label number, returned as a CFNumber object.
-	}
-	else if (CFEqual(key, kCFURLLabelColorKey))
-	{
-		
-	}
-	else if (CFEqual(key, kCFURLLocalizedLabelKey))
-	{
-		
-	}
-	else if (CFEqual(key, kCFURLEffectiveIconKey))
-	{
-		
-	}
-	else if (CFEqual(key, kCFURLCustomIconKey))
-	{
-		
-	}
-	else if (CFEqual(key, kCFURLFileResourceIdentifierKey))
-	{
-		// Key for the resource’s unique identifier, returned as a CFType object.
-		// This identifier can be used to determine equality between file system resources with the CFEqual function. Two resources are equal if they have the same file-system path or if their paths link to the same inode on the same file system.
-		// The value of this identifier is not persistent across system restarts.
-		// Available in iOS 5.0 and later.
+    }
+    else if (CFEqual(key, kCFURLLabelNumberKey))
+    {
+        // Key for the resource’s label number, returned as a CFNumber object.
+    }
+    else if (CFEqual(key, kCFURLLabelColorKey))
+    {
+        
+    }
+    else if (CFEqual(key, kCFURLLocalizedLabelKey))
+    {
+        
+    }
+    else if (CFEqual(key, kCFURLEffectiveIconKey))
+    {
+        
+    }
+    else if (CFEqual(key, kCFURLCustomIconKey))
+    {
+        
+    }
+    else if (CFEqual(key, kCFURLFileResourceIdentifierKey))
+    {
+        // Key for the resource’s unique identifier, returned as a CFType object.
+        // This identifier can be used to determine equality between file system resources with the CFEqual function. Two resources are equal if they have the same file-system path or if their paths link to the same inode on the same file system.
+        // The value of this identifier is not persistent across system restarts.
+        // Available in iOS 5.0 and later.
 
-	}
-	else if (CFEqual(key, kCFURLVolumeIdentifierKey))
-	{
-		
-	}
-	else if (CFEqual(key, kCFURLPreferredIOBlockSizeKey))
-	{
-		// Key for the optimal block size to use when reading or writing this file's data, returned as a CFNumber object, or NULL if the preferred size is not available.
-		if (CFURLStat(url, &info))
-		{
-			value = CFNumberCreate(kCFAllocatorDefault, kCFNumberLongType, &info.st_blksize);
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLIsReadableKey))
-	{
-		// Key for determining whether the current process (as determined by the EUID) can read the resource, returned as a CFBoolean object.
-		if (CFURLStat(url, &info))
-		{
-			value = (info.st_mode & S_IRUSR) == S_IRUSR ? kCFBooleanTrue : kCFBooleanFalse;
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLIsWritableKey))
-	{
-		// Key for determining whether the current process (as determined by the EUID) can write to the resource, returned as a CFBoolean object.
-		if (CFURLStat(url, &info))
-		{
-			value = (info.st_mode & S_IWUSR) == S_IWUSR ? kCFBooleanTrue : kCFBooleanFalse;
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLIsExecutableKey))
-	{
-		// Key for determining whether the current process (as determined by the EUID) can execute the resource (if it is a file) or search the resource (if it is a directory), returned as a CFBoolean object.
-		if (CFURLStat(url, &info))
-		{
-			value = (info.st_mode & S_IXUSR) == S_IXUSR ? kCFBooleanTrue : kCFBooleanFalse;
-		}
-		else
-		{
-			posixError(error);
-		}
-	}
-	else if (CFEqual(key, kCFURLFileSecurityKey))
-	{
-		
-	}
-	else if (CFEqual(key, kCFURLIsExcludedFromBackupKey))
-	{
-		value = kCFBooleanTrue;
-	}
-	else if (CFEqual(key, kCFURLFileResourceTypeKey))
-	{
-		// Key for the resource’s object type, returned as a CFString object. See “File Resource Types” for possible values.
-	}
+    }
+    else if (CFEqual(key, kCFURLVolumeIdentifierKey))
+    {
+        
+    }
+    else if (CFEqual(key, kCFURLPreferredIOBlockSizeKey))
+    {
+        // Key for the optimal block size to use when reading or writing this file's data, returned as a CFNumber object, or NULL if the preferred size is not available.
+        if (CFURLStat(url, &info))
+        {
+            value = CFNumberCreate(kCFAllocatorDefault, kCFNumberLongType, &info.st_blksize);
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLIsReadableKey))
+    {
+        // Key for determining whether the current process (as determined by the EUID) can read the resource, returned as a CFBoolean object.
+        if (CFURLStat(url, &info))
+        {
+            value = (info.st_mode & S_IRUSR) == S_IRUSR ? kCFBooleanTrue : kCFBooleanFalse;
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLIsWritableKey))
+    {
+        // Key for determining whether the current process (as determined by the EUID) can write to the resource, returned as a CFBoolean object.
+        if (CFURLStat(url, &info))
+        {
+            value = (info.st_mode & S_IWUSR) == S_IWUSR ? kCFBooleanTrue : kCFBooleanFalse;
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLIsExecutableKey))
+    {
+        // Key for determining whether the current process (as determined by the EUID) can execute the resource (if it is a file) or search the resource (if it is a directory), returned as a CFBoolean object.
+        if (CFURLStat(url, &info))
+        {
+            value = (info.st_mode & S_IXUSR) == S_IXUSR ? kCFBooleanTrue : kCFBooleanFalse;
+        }
+        else
+        {
+            posixError(error);
+        }
+    }
+    else if (CFEqual(key, kCFURLFileSecurityKey))
+    {
+        
+    }
+    else if (CFEqual(key, kCFURLIsExcludedFromBackupKey))
+    {
+        value = kCFBooleanTrue;
+    }
+    else if (CFEqual(key, kCFURLFileResourceTypeKey))
+    {
+        // Key for the resource’s object type, returned as a CFString object. See “File Resource Types” for possible values.
+    }
 
-	return value;
+    return value;
 }
 
 static const void *nullSafeRetain(CFAllocatorRef allocator, const void *value)
 {
-	if (value != NULL)
-	{
-		return (const void *)CFRetain((CFTypeRef)value);
-	}
-	else
-	{
-		return NULL;
-	}
+    if (value != NULL)
+    {
+        return (const void *)CFRetain((CFTypeRef)value);
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 static void nullSafeRelease(CFAllocatorRef allocator, const void *value)
 {
-	if (value != NULL)
-	{
-		CFRelease((CFTypeRef)value);
-	}
+    if (value != NULL)
+    {
+        CFRelease((CFTypeRef)value);
+    }
 }
 
 static CFStringRef nullSafeCopyDescription(const void *value)
 {
-	if (value != NULL)
-	{
-		return CFCopyDescription((CFTypeRef)value);
-	}
-	else
-	{
-		return CFSTR("(null)");
-	}
+    if (value != NULL)
+    {
+        return CFCopyDescription((CFTypeRef)value);
+    }
+    else
+    {
+        return CFSTR("(null)");
+    }
 }
 
 static Boolean nullSafeEqual(const void *value1, const void *value2)
 {
-	if (value1 == NULL || value2 == NULL)
-	{
-		return value1 == value2;
-	}
-	else
-	{
-		return CFEqual((CFTypeRef)value1, (CFTypeRef)value2);
-	}
+    if (value1 == NULL || value2 == NULL)
+    {
+        return value1 == value2;
+    }
+    else
+    {
+        return CFEqual((CFTypeRef)value1, (CFTypeRef)value2);
+    }
 }
 
 
 static CFDictionaryValueCallBacks nullSafeCallbacks = {
-	0,
-	&nullSafeRetain,
-	&nullSafeRelease,
-	&nullSafeCopyDescription,
-	&nullSafeEqual,
+    0,
+    &nullSafeRetain,
+    &nullSafeRelease,
+    &nullSafeCopyDescription,
+    &nullSafeEqual,
 };
 
 static inline CFMutableDictionaryRef CFURLResourceInfo(CFURLRef url)
 {
-	CFMutableDictionaryRef resourceInfo = __CFURLResourceInfoPtr(url);
-	pthread_mutex_lock(&resInfoLock);
+    CFMutableDictionaryRef resourceInfo = __CFURLResourceInfoPtr(url);
+    pthread_mutex_lock(&resInfoLock);
 
-	if (resourceInfo == NULL)
-	{
-		resourceInfo = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFCopyStringDictionaryKeyCallBacks, &nullSafeCallbacks);
-		__CFURLSetResourceInfoPtr(url, resourceInfo); // retains the info
-		CFRelease(resourceInfo);
-	}
+    if (resourceInfo == NULL)
+    {
+        resourceInfo = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFCopyStringDictionaryKeyCallBacks, &nullSafeCallbacks);
+        __CFURLSetResourceInfoPtr(url, resourceInfo); // retains the info
+        CFRelease(resourceInfo);
+    }
 
-	resourceInfo = (CFMutableDictionaryRef)CFRetain(resourceInfo);
-	pthread_mutex_unlock(&resInfoLock);
-	return resourceInfo;
+    resourceInfo = (CFMutableDictionaryRef)CFRetain(resourceInfo);
+    pthread_mutex_unlock(&resInfoLock);
+    return resourceInfo;
 }
 
 static inline void CFURLResourceInfoUpdate(CFMutableDictionaryRef info, CFStringRef key, CFTypeRef value)
 {
-	pthread_mutex_lock(&resInfoLock);
-	CFDictionarySetValue(info, key, value);
-	pthread_mutex_unlock(&resInfoLock);
+    pthread_mutex_lock(&resInfoLock);
+    CFDictionarySetValue(info, key, value);
+    pthread_mutex_unlock(&resInfoLock);
 }
 
 static inline void CFURLResourceInfoUpdateRelease(CFMutableDictionaryRef info, CFStringRef key, CFTypeRef value)
 {
-	pthread_mutex_lock(&resInfoLock);
-	CFDictionarySetValue(info, key, value);
-	CFRelease(info);
-	pthread_mutex_unlock(&resInfoLock);
+    pthread_mutex_lock(&resInfoLock);
+    CFDictionarySetValue(info, key, value);
+    CFRelease(info);
+    pthread_mutex_unlock(&resInfoLock);
 }
 
 static inline void CFURLResourceInfoRelease(CFMutableDictionaryRef info)
 {
-	pthread_mutex_lock(&resInfoLock);
-	CFRelease(info);
-	pthread_mutex_unlock(&resInfoLock);
+    pthread_mutex_lock(&resInfoLock);
+    CFRelease(info);
+    pthread_mutex_unlock(&resInfoLock);
 }
 
 Boolean CFURLCopyResourcePropertyForKey(CFURLRef url, CFStringRef key, void *propertyValueTypeRefPtr, CFErrorRef *error)
 {
-	if (propertyValueTypeRefPtr != NULL)
-	{
-		*(CFTypeRef *)propertyValueTypeRefPtr = NULL;
-	}
+    if (propertyValueTypeRefPtr != NULL)
+    {
+        *(CFTypeRef *)propertyValueTypeRefPtr = NULL;
+    }
 
-	if (error != NULL)
-	{
-		*error = NULL;
-	}
+    if (error != NULL)
+    {
+        *error = NULL;
+    }
 
-	CFMutableDictionaryRef resourceInfo = CFURLResourceInfo(url);
-	CFTypeRef value = (CFTypeRef)CFDictionaryGetValue(resourceInfo, key);
+    CFMutableDictionaryRef resourceInfo = CFURLResourceInfo(url);
+    CFTypeRef value = (CFTypeRef)CFDictionaryGetValue(resourceInfo, key);
 
-	if (value == NULL)
-	{
-		value = CFURLCreatePropertyForKey(url, key, error);
-	}
-	else
-	{
-		value = CFRetain(value);
-	}
-	
-	if (propertyValueTypeRefPtr != NULL)
-	{
-		*(CFTypeRef *)propertyValueTypeRefPtr = value;
-	}
-	
-	CFURLResourceInfoUpdateRelease(resourceInfo, key, value);
+    if (value == NULL)
+    {
+        value = CFURLCreatePropertyForKey(url, key, error);
+    }
+    else
+    {
+        value = CFRetain(value);
+    }
+    
+    if (propertyValueTypeRefPtr != NULL)
+    {
+        *(CFTypeRef *)propertyValueTypeRefPtr = value;
+    }
+    
+    CFURLResourceInfoUpdateRelease(resourceInfo, key, value);
 
-	if (value != NULL)
-	{
-		CFRelease(value);
-		return true;
-	}
+    if (value != NULL)
+    {
+        CFRelease(value);
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 CFDictionaryRef CFURLCopyResourcePropertiesForKeys(CFURLRef url, CFArrayRef keys, CFErrorRef *error)
 {
-	CFDictionaryRef props = NULL;
-	CFTypeRef stack_keys[STACK_BUFFER_SIZE] = { NULL };
-	CFTypeRef stack_values[STACK_BUFFER_SIZE] = { NULL };
-	CFTypeRef *property_keys = &stack_keys[0];
-	CFTypeRef *property_values = &stack_values[0];
-	CFMutableDictionaryRef resourceInfo = CFURLResourceInfo(url);
-	CFIndex count = CFArrayGetCount(keys);
-	CFIndex propCount = 0;
-	if (count > STACK_BUFFER_SIZE)
-	{
-		property_keys = malloc(sizeof(CFTypeRef) * count);
+    CFDictionaryRef props = NULL;
+    CFTypeRef stack_keys[STACK_BUFFER_SIZE] = { NULL };
+    CFTypeRef stack_values[STACK_BUFFER_SIZE] = { NULL };
+    CFTypeRef *property_keys = &stack_keys[0];
+    CFTypeRef *property_values = &stack_values[0];
+    CFMutableDictionaryRef resourceInfo = CFURLResourceInfo(url);
+    CFIndex count = CFArrayGetCount(keys);
+    CFIndex propCount = 0;
+    if (count > STACK_BUFFER_SIZE)
+    {
+        property_keys = malloc(sizeof(CFTypeRef) * count);
 
-		if (property_keys == NULL)
-		{
-			// populate malloc error here
-			return NULL;
-		}
+        if (property_keys == NULL)
+        {
+            // populate malloc error here
+            return NULL;
+        }
 
-		property_values = malloc(sizeof(CFTypeRef) * count);
+        property_values = malloc(sizeof(CFTypeRef) * count);
 
-		if (property_values == NULL)
-		{
-			free(property_keys);
-			// populate malloc error here
-			return NULL;
-		}
-	}
+        if (property_values == NULL)
+        {
+            free(property_keys);
+            // populate malloc error here
+            return NULL;
+        }
+    }
 
-	for (CFIndex idx = 0; idx < count; idx++)
-	{
-		CFStringRef key = CFArrayGetValueAtIndex(keys, idx);
-		CFTypeRef value = (CFTypeRef)CFDictionaryGetValue(resourceInfo, key);
+    for (CFIndex idx = 0; idx < count; idx++)
+    {
+        CFStringRef key = CFArrayGetValueAtIndex(keys, idx);
+        CFTypeRef value = (CFTypeRef)CFDictionaryGetValue(resourceInfo, key);
 
-		if (value == NULL)
-		{
-			value = CFURLCreatePropertyForKey(url, key, error);
-		}
-		else
-		{
-			value = CFRetain(value);
-		}
+        if (value == NULL)
+        {
+            value = CFURLCreatePropertyForKey(url, key, error);
+        }
+        else
+        {
+            value = CFRetain(value);
+        }
 
-		CFURLResourceInfoUpdate(resourceInfo, key, value);
+        CFURLResourceInfoUpdate(resourceInfo, key, value);
 
-		if (value != NULL)
-		{
-			property_keys[propCount] = key;
-			property_values[propCount] = value;
-			propCount++;
-		}
+        if (value != NULL)
+        {
+            property_keys[propCount] = key;
+            property_values[propCount] = value;
+            propCount++;
+        }
 
-	}
+    }
 
-	CFURLResourceInfoRelease(resourceInfo);
+    CFURLResourceInfoRelease(resourceInfo);
 
-	props = CFDictionaryCreate(kCFAllocatorDefault, property_keys, property_values, propCount, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    props = CFDictionaryCreate(kCFAllocatorDefault, property_keys, property_values, propCount, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 
-	if (property_keys != &stack_keys[0])
-	{
-		free(property_keys);
-	}
+    if (property_keys != &stack_keys[0])
+    {
+        free(property_keys);
+    }
 
-	for (CFIndex idx = 0; idx < propCount; idx++)
-	{
-		CFRelease(property_values[idx]);
-	}
+    for (CFIndex idx = 0; idx < propCount; idx++)
+    {
+        CFRelease(property_values[idx]);
+    }
 
-	if (property_values != &stack_values[0])
-	{
-		free(property_values);
-	}
+    if (property_values != &stack_values[0])
+    {
+        free(property_values);
+    }
 
-	return props;
+    return props;
 }
 
 static CFTypeRef CFURLSetPropertyForKey(CFURLRef url, CFStringRef key, CFTypeRef value, CFErrorRef *error) {
-	CFTypeRef acceptedValue = NULL;
-	// Verify that these only set meta-data and not twiddle real file system items
-	if (CFEqual(key, kCFURLNameKey) && CFGetTypeID(value) == CFStringGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLLocalizedNameKey) && CFGetTypeID(value) == CFStringGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLPathKey) && CFGetTypeID(value) == CFStringGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsRegularFileKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsDirectoryKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsSymbolicLinkKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsVolumeKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsPackageKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsSystemImmutableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsUserImmutableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsHiddenKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLHasHiddenExtensionKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLCreationDateKey) && CFGetTypeID(value) == CFDateGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLContentAccessDateKey) && CFGetTypeID(value) == CFDateGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLContentModificationDateKey) && CFGetTypeID(value) == CFDateGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLAttributeModificationDateKey) && CFGetTypeID(value) == CFDateGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLLinkCountKey) && CFGetTypeID(value) == CFNumberGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLParentDirectoryURLKey) && CFGetTypeID(value) == CFURLGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLVolumeURLKey) && CFGetTypeID(value) == CFURLGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLTypeIdentifierKey) && CFGetTypeID(value) == CFStringGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLLocalizedTypeDescriptionKey) && CFGetTypeID(value) == CFStringGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLLabelNumberKey) && CFGetTypeID(value) == CFNumberGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLLabelColorKey))
-	{
-		// not supported, and what is a CFColorRef anyhow? do they mean CGColorRef?
-	}
-	else if (CFEqual(key, kCFURLLocalizedLabelKey) && CFGetTypeID(value) == CFStringGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLEffectiveIconKey))
-	{
-		// not supported, go away!
-	}
-	else if (CFEqual(key, kCFURLCustomIconKey))
-	{
-		// same as prev
-	}
-	else if (CFEqual(key, kCFURLFileResourceIdentifierKey))
-	{
-		// NO
-	}
-	else if (CFEqual(key, kCFURLVolumeIdentifierKey))
-	{
-		// not supported
-	}
-	else if (CFEqual(key, kCFURLPreferredIOBlockSizeKey) && CFGetTypeID(value) == CFNumberGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsReadableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsWritableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLIsExecutableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLFileSecurityKey))
-	{
-		// not supported
-	}
-	else if (CFEqual(key, kCFURLIsExcludedFromBackupKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
-	{
-		acceptedValue = CFRetain(value);
-	}
-	else if (CFEqual(key, kCFURLFileResourceTypeKey))
-	{
-		// not supported
-	}
+    CFTypeRef acceptedValue = NULL;
+    // Verify that these only set meta-data and not twiddle real file system items
+    if (CFEqual(key, kCFURLNameKey) && CFGetTypeID(value) == CFStringGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLLocalizedNameKey) && CFGetTypeID(value) == CFStringGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLPathKey) && CFGetTypeID(value) == CFStringGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsRegularFileKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsDirectoryKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsSymbolicLinkKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsVolumeKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsPackageKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsSystemImmutableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsUserImmutableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsHiddenKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLHasHiddenExtensionKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLCreationDateKey) && CFGetTypeID(value) == CFDateGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLContentAccessDateKey) && CFGetTypeID(value) == CFDateGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLContentModificationDateKey) && CFGetTypeID(value) == CFDateGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLAttributeModificationDateKey) && CFGetTypeID(value) == CFDateGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLLinkCountKey) && CFGetTypeID(value) == CFNumberGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLParentDirectoryURLKey) && CFGetTypeID(value) == CFURLGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLVolumeURLKey) && CFGetTypeID(value) == CFURLGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLTypeIdentifierKey) && CFGetTypeID(value) == CFStringGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLLocalizedTypeDescriptionKey) && CFGetTypeID(value) == CFStringGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLLabelNumberKey) && CFGetTypeID(value) == CFNumberGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLLabelColorKey))
+    {
+        // not supported, and what is a CFColorRef anyhow? do they mean CGColorRef?
+    }
+    else if (CFEqual(key, kCFURLLocalizedLabelKey) && CFGetTypeID(value) == CFStringGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLEffectiveIconKey))
+    {
+        // not supported, go away!
+    }
+    else if (CFEqual(key, kCFURLCustomIconKey))
+    {
+        // same as prev
+    }
+    else if (CFEqual(key, kCFURLFileResourceIdentifierKey))
+    {
+        // NO
+    }
+    else if (CFEqual(key, kCFURLVolumeIdentifierKey))
+    {
+        // not supported
+    }
+    else if (CFEqual(key, kCFURLPreferredIOBlockSizeKey) && CFGetTypeID(value) == CFNumberGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsReadableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsWritableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLIsExecutableKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLFileSecurityKey))
+    {
+        // not supported
+    }
+    else if (CFEqual(key, kCFURLIsExcludedFromBackupKey) && CFGetTypeID(value) == CFBooleanGetTypeID())
+    {
+        acceptedValue = CFRetain(value);
+    }
+    else if (CFEqual(key, kCFURLFileResourceTypeKey))
+    {
+        // not supported
+    }
 
-	return acceptedValue;
+    return acceptedValue;
 }
 
 Boolean CFURLSetResourcePropertyForKey(CFURLRef url, CFStringRef key, CFTypeRef propertyValue, CFErrorRef *error)
 {
-	CFMutableDictionaryRef resourceInfo = CFURLResourceInfo(url);
+    CFMutableDictionaryRef resourceInfo = CFURLResourceInfo(url);
 
-	CFTypeRef value = CFURLSetPropertyForKey(url, key, propertyValue, error);
-	
-	CFURLResourceInfoUpdateRelease(resourceInfo, key, value);
+    CFTypeRef value = CFURLSetPropertyForKey(url, key, propertyValue, error);
+    
+    CFURLResourceInfoUpdateRelease(resourceInfo, key, value);
 
-	if (value != NULL)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+    if (value != NULL)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 struct URLPropertyContext {
-	CFURLRef url;
-	CFErrorRef *error;
-	CFMutableDictionaryRef resourceInfo;
-	Boolean *success;
+    CFURLRef url;
+    CFErrorRef *error;
+    CFMutableDictionaryRef resourceInfo;
+    Boolean *success;
 };
 
 static void applyProperties(const void *key, const void *value, void *context)
 {
-	struct URLPropertyContext *ctx = (struct URLPropertyContext *)context;
-	if (!*ctx->success)
-	{
-		return;
-	}
+    struct URLPropertyContext *ctx = (struct URLPropertyContext *)context;
+    if (!*ctx->success)
+    {
+        return;
+    }
 
-	CFTypeRef acceptedValue = CFURLSetPropertyForKey(ctx->url, key, value, ctx->error);
-	if (acceptedValue != NULL)
-	{
-		CFURLResourceInfoUpdate(ctx->resourceInfo, key, acceptedValue);
-		CFRelease(acceptedValue);
-	}
-	else
-	{
-		*ctx->success = false;
-	}
+    CFTypeRef acceptedValue = CFURLSetPropertyForKey(ctx->url, key, value, ctx->error);
+    if (acceptedValue != NULL)
+    {
+        CFURLResourceInfoUpdate(ctx->resourceInfo, key, acceptedValue);
+        CFRelease(acceptedValue);
+    }
+    else
+    {
+        *ctx->success = false;
+    }
 }
 
 Boolean CFURLSetResourcePropertiesForKeys(CFURLRef url, CFDictionaryRef keyedPropertyValues, CFErrorRef *error)
 {
-	Boolean success = true;
-	CFMutableDictionaryRef resourceInfo = CFURLResourceInfo(url);
-	struct URLPropertyContext ctx = {
-		url,
-		error,
-		resourceInfo,
-		&success
-	};
+    Boolean success = true;
+    CFMutableDictionaryRef resourceInfo = CFURLResourceInfo(url);
+    struct URLPropertyContext ctx = {
+        url,
+        error,
+        resourceInfo,
+        &success
+    };
 
-	CFDictionaryApplyFunction(resourceInfo, &applyProperties, &ctx);
-	CFURLResourceInfoRelease(resourceInfo);
+    CFDictionaryApplyFunction(resourceInfo, &applyProperties, &ctx);
+    CFURLResourceInfoRelease(resourceInfo);
 
-	return success;
+    return success;
 }
 
 CFDataRef CFURLCreateBookmarkDataFromFile(CFAllocatorRef allocator, CFURLRef fileURL, CFErrorRef *errorRef)
 {
-// TODO: FIXME
-	printf("STUB %s\n", __PRETTY_FUNCTION__);
-	return NULL;
+#warning TODO: FIXME
+    return NULL;
 }
 
 Boolean CFURLWriteBookmarkDataToFile(CFDataRef bookmarkRef, CFURLRef fileURL, CFURLBookmarkFileCreationOptions options, CFErrorRef *errorRef)
 {
-// TODO: FIXME
-	printf("STUB %s\n", __PRETTY_FUNCTION__);
-	return false;
+#warning TODO: FIXME
+    return false;
 }
 
 CFTypeRef CFURLCreateResourcePropertyForKeyFromBookmarkData(CFAllocatorRef allocator, CFStringRef resourcePropertyToReturn, CFDataRef bookmark)
 {
-// TODO: FIXME
-	printf("STUB %s\n", __PRETTY_FUNCTION__);
-	return NULL;
+#warning TODO: FIXME
+    return NULL;
 }
 
 CFDictionaryRef CFURLCreateResourcePropertiesForKeysFromBookmarkData(CFAllocatorRef allocator, CFArrayRef resourcePropertiesToReturn, CFDataRef bookmark)
 {
-// TODO: FIXME
-	printf("STUB %s\n", __PRETTY_FUNCTION__);
-	return NULL;
+#warning TODO: FIXME
+    return NULL;
 }
 
 CFURLRef CFURLCreateByResolvingBookmarkData(CFAllocatorRef allocator, CFDataRef bookmark, CFURLBookmarkResolutionOptions options, CFURLRef relativeToURL, CFArrayRef resourcePropertiesToInclude, Boolean* isStale, CFErrorRef* error)
 {
-// TODO: FIXME
-	printf("STUB %s\n", __PRETTY_FUNCTION__);
-	return NULL;
+#warning TODO: FIXME
+    return NULL;
 }
 
 CFDataRef CFURLCreateBookmarkData(CFAllocatorRef allocator, CFURLRef url, CFURLBookmarkCreationOptions options, CFArrayRef resourcePropertiesToInclude, CFURLRef relativeToURL, CFErrorRef *error)
 {
-// TODO: FIXME
-	printf("STUB %s\n", __PRETTY_FUNCTION__);
-	return NULL;
+#warning TODO: FIXME
+    return NULL;
 }
 
 Boolean CFURLResourceIsReachable(CFURLRef url, CFErrorRef *error)
 {
-// TODO: FIXME
-	printf("STUB %s\n", __PRETTY_FUNCTION__);
-	return false;
+#warning TODO: FIXME
+    return false;
 }
 
 @implementation NSURL
 
-- (id)initWithScheme:(NSString *)scheme host:(NSString *)host path:(NSString *)path
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (id)initFileURLWithPath:(NSString *)path isDirectory:(BOOL)isDir
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (id)initFileURLWithPath:(NSString *)path
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (id)initWithString:(NSString *)URLString
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (id)initWithString:(NSString *)URLString relativeToURL:(NSURL *)baseURL
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)absoluteString
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)relativeString
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSURL *)baseURL
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSURL *)absoluteURL
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)scheme
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)resourceSpecifier
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)host
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSNumber *)port
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)user
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)password
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)path
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)fragment
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)parameterString
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)query
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSString *)relativePath
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (BOOL)getFileSystemRepresentation:(char *)buffer maxLength:(NSUInteger)maxBufferLength
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return NO;
-}
-
-- (const char *)fileSystemRepresentation
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return NULL;
-}
-
-- (BOOL)isFileURL
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return NO;
-}
-
-- (NSURL *)standardizedURL
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (BOOL)startAccessingSecurityScopedResource
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return NO;
-}
-
-- (void)stopAccessingSecurityScopedResource
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-+ (id)fileURLWithPath:(NSString *)path isDirectory:(BOOL) isDir
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (id)fileURLWithPath:(NSString *)path
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (id)fileURLWithFileSystemRepresentation:(const char *)path isDirectory:(BOOL)isDir relativeToURL:(NSURL *)baseURL
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (id)URLWithString:(NSString *)URLString
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (id)URLWithString:(NSString *)URLString relativeToURL:(NSURL *)baseURL
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (void)encodeWithCoder:(NSCoder *)aCoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (id)copyWithZone:(NSZone *)zone
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
 + (NSData *)bookmarkDataWithContentsOfURL:(NSURL *)bookmarkFileURL error:(NSError **)error
 {
-	return [(NSData *)CFURLCreateBookmarkDataFromFile(kCFAllocatorDefault, (CFURLRef)bookmarkFileURL, (CFErrorRef *)error) autorelease];
+    return [(NSData *)CFURLCreateBookmarkDataFromFile(kCFAllocatorDefault, (CFURLRef)bookmarkFileURL, (CFErrorRef *)error) autorelease];
 }
 
 + (BOOL)writeBookmarkData:(NSData *)bookmarkData toURL:(NSURL *)bookmarkFileURL options:(NSURLBookmarkFileCreationOptions)options error:(NSError **)error
 {
-	return CFURLWriteBookmarkDataToFile((CFDataRef)bookmarkData, (CFURLRef)bookmarkFileURL, options, (CFErrorRef *)error);
+    return CFURLWriteBookmarkDataToFile((CFDataRef)bookmarkData, (CFURLRef)bookmarkFileURL, options, (CFErrorRef *)error);
 }
 
 + (NSDictionary *)resourceValuesForKeys:(NSArray *)keys fromBookmarkData:(NSData *)bookmarkData
 {
-	return [(NSDictionary *)CFURLCreateResourcePropertiesForKeysFromBookmarkData(kCFAllocatorDefault, (CFArrayRef)keys, (CFDataRef)bookmarkData) autorelease];
+    return [(NSDictionary *)CFURLCreateResourcePropertiesForKeysFromBookmarkData(kCFAllocatorDefault, (CFArrayRef)keys, (CFDataRef)bookmarkData) autorelease];
 }
 
 + (id)URLByResolvingBookmarkData:(NSData *)bookmarkData options:(NSURLBookmarkResolutionOptions)options relativeToURL:(NSURL *)relativeURL bookmarkDataIsStale:(BOOL *)isStale error:(NSError **)error
 {
-	return [[[self alloc] initByResolvingBookmarkData:bookmarkData options:options relativeToURL:relativeURL bookmarkDataIsStale:isStale error:error] autorelease];
+    return [[[self alloc] initByResolvingBookmarkData:bookmarkData options:options relativeToURL:relativeURL bookmarkDataIsStale:isStale error:error] autorelease];
 }
 
 + (BOOL)supportsSecureCoding
 {
-	return NO;
+    return NO;
 }
 
 - (id)bookmarkDataWithAliasRecord:(id)aliasRecord
 {
-	return nil; // what is this used for? it seems to do absolutely nothing on iOS
+    return nil; // what is this used for? it seems to do absolutely nothing on iOS
 }
 
 - (id)initByResolvingBookmarkData:(NSData *)bookmarkData options:(NSURLBookmarkResolutionOptions)options relativeToURL:(NSURL *)relativeURL bookmarkDataIsStale:(BOOL *)isStale error:(NSError **)error
 {
-	// This is OK because they have identical values
-	CFURLBookmarkResolutionOptions cfOptions = (CFURLBookmarkResolutionOptions)options;
-	[self release];
-	Boolean stale = NO;
-	CFURLRef relative = [relativeURL _cfurl];
-	CFURLRef url = CFURLCreateByResolvingBookmarkData(kCFAllocatorDefault,
-			(CFDataRef)bookmarkData,
-			cfOptions,
-			relative,
-			NULL,
-			&stale,
-			(CFErrorRef *)error);
+    [self release];
+    Boolean stale = NO;
+    CFURLRef relative = [relativeURL _cfurl];
+    CFURLRef url = CFURLCreateByResolvingBookmarkData(kCFAllocatorDefault, (CFDataRef)bookmarkData, options, relative, NULL, &stale, (CFErrorRef *)error);
 
-	if (isStale)
-	{
-		*isStale = stale;
-	}
+    if (isStale)
+    {
+        *isStale = stale;
+    }
 
-	return (NSURL *)url;
+    return (NSURL *)url;
 }
 
 - (NSData *)bookmarkDataWithOptions:(NSURLBookmarkCreationOptions)options includingResourceValuesForKeys:(NSArray *)keys relativeToURL:(NSURL *)relativeURL error:(NSError **)error
 {
-	// This is OK because they have identical values
-	CFURLBookmarkCreationOptions cfOptions = (CFURLBookmarkCreationOptions)options;
-	return [(NSData *)CFURLCreateBookmarkData(kCFAllocatorDefault, [self _cfurl], cfOptions, (CFArrayRef)keys, (CFURLRef)relativeURL, (CFErrorRef *)error) autorelease];
+    return [(NSData *)CFURLCreateBookmarkData(kCFAllocatorDefault, [self _cfurl], options, (CFArrayRef)keys, (CFURLRef)relativeURL, (CFErrorRef *)error) autorelease];
 }
 
 - (NSURL *)filePathURL
 {
-	NSURL *url = nil;
-	if ([self isFileReferenceURL])
-	{
-		url = [(NSURL *)CFURLCreateFilePathURL(kCFAllocatorDefault, [self _cfurl], NULL) autorelease];
-	}
-	else if ([self isFileURL])
-	{
-		url = self;
-	}
+    NSURL *url = nil;
+    if ([self isFileReferenceURL])
+    {
+        url = [(NSURL *)CFURLCreateFilePathURL(kCFAllocatorDefault, [self _cfurl], NULL) autorelease];
+    }
+    else if ([self isFileURL])
+    {
+        url = self;
+    }
 
-	return url;
+    return url;
 }
 
 - (NSURL *)fileReferenceURL
 {
-	NSURL *url = nil;
-	if ([self isFileReferenceURL])
-	{
-		url = self;
-	}
-	else if ([self isFileURL])
-	{
-		url = [(NSURL *)CFURLCreateFileReferenceURL(kCFAllocatorDefault, [self _cfurl], NULL) autorelease];
-	}
-	
-	return url;
+    NSURL *url = nil;
+    if ([self isFileReferenceURL])
+    {
+        url = self;
+    }
+    else if ([self isFileURL])
+    {
+        url = [(NSURL *)CFURLCreateFileReferenceURL(kCFAllocatorDefault, [self _cfurl], NULL) autorelease];
+    }
+    
+    return url;
 }
 
 - (BOOL)isFileReferenceURL
 {
-	return _CFURLIsFileReferenceURL([self _cfurl]);
+    return _CFURLIsFileReferenceURL([self _cfurl]);
 }
 
 - (BOOL)checkResourceIsReachableAndReturnError:(NSError **)error
 {
-	return CFURLResourceIsReachable([self _cfurl], (CFErrorRef *)error);
+    return CFURLResourceIsReachable([self _cfurl], (CFErrorRef *)error);
 }
 
 - (BOOL)getResourceValue:(out id *)value forKey:(NSString *)key error:(out NSError **)error
 {
-	return CFURLCopyResourcePropertyForKey([self _cfurl], (CFStringRef)key, value, (CFErrorRef *)error);
+    return CFURLCopyResourcePropertyForKey([self _cfurl], (CFStringRef)key, value, (CFErrorRef *)error);
 }
 
 - (NSDictionary *)resourceValuesForKeys:(NSArray *)keys error:(NSError **)error
 {
-	return [(NSDictionary *)CFURLCopyResourcePropertiesForKeys([self _cfurl], (CFArrayRef)keys, (CFErrorRef *)error) autorelease];
+    return [(NSDictionary *)CFURLCopyResourcePropertiesForKeys([self _cfurl], (CFArrayRef)keys, (CFErrorRef *)error) autorelease];
 }
 
 - (BOOL)setResourceValue:(id)value forKey:(NSString *)key error:(NSError **)error
 {
-	return CFURLSetResourcePropertyForKey([self _cfurl], (CFStringRef)key, (CFTypeRef)value, (CFErrorRef *)error);
+    return CFURLSetResourcePropertyForKey([self _cfurl], (CFStringRef)key, (CFTypeRef)value, (CFErrorRef *)error);
 }
 
 - (BOOL)setResourceValues:(NSDictionary *)keyedValues error:(NSError **)error
 {
-	return CFURLSetResourcePropertiesForKeys([self _cfurl], (CFDictionaryRef)keyedValues, (CFErrorRef *)error);
+    return CFURLSetResourcePropertiesForKeys([self _cfurl], (CFDictionaryRef)keyedValues, (CFErrorRef *)error);
 }
 
 @end

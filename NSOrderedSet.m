@@ -20,10 +20,6 @@
 #import "NSFastEnumerationEnumerator.h"
 #import "NSObjectInternal.h"
 
-#import <objc/objc-runtime.h>
-
-#include <stdio.h>
-
 @interface __NSPlaceholderOrderedSet : NSMutableOrderedSet
 + (id)mutablePlaceholder;
 + (id)immutablePlaceholder;
@@ -85,11 +81,6 @@
 #define STACK_BUFFER_SIZE 256
 
 @implementation NSOrderedSet
-
-- (instancetype)init
-{
-	return [super init];
-}
 
 + (id)allocWithZone:(NSZone *)zone
 {
@@ -1422,8 +1413,9 @@
     if (cmptr == nil)
     {
         [self doesNotRecognizeSelector:_cmd];
-        [NSException raise:NSInvalidArgumentException format:@"-[%s <null selector>] unrecognized selector 0x%x",
-		object_getClassName(self), (unsigned int)self];
+        CFStringRef format = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("-[%s <null selector>] unrecognized selector 0x%x"), object_getClassName(self), self);
+        [NSException raise:NSInvalidArgumentException format:(NSString *)format];
+        CFRelease(format);
         return nil;
     }
 
@@ -1439,8 +1431,7 @@
 
         if (objs == NULL)
         {
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("unable to allocate space to store %lu objects"), (unsigned long)count);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("unable to allocate space to store %d objects"), count);
             @throw [NSException exceptionWithName:NSMallocException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
             return nil;
@@ -1449,8 +1440,7 @@
         if (indexes == NULL)
         {
             free(objects);
-            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
-			    CFSTR("unable to allocate space to store %lu indices"), (unsigned long)count);
+            CFStringRef reason = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("unable to allocate space to store %d indices"), count);
             @throw [NSException exceptionWithName:NSMallocException reason:(NSString *)reason userInfo:nil];
             CFRelease(reason);
             return nil;
@@ -1507,7 +1497,7 @@
 - (NSString *)descriptionWithLocale:(NSLocale *)locale indent:(NSUInteger)level
 {
     CFMutableStringRef description = CFStringCreateMutable(kCFAllocatorDefault, 0);
-    CFStringAppendFormat(description, NULL, CFSTR("%*s{(\n"), (int)level * (int)strlen(INDENT), "");
+    CFStringAppendFormat(description, NULL, CFSTR("%*s{(\n"), (int)level * strlen(INDENT), "");
 
     NSUInteger count = [self count];
     NSUInteger idx = 1;
@@ -1544,7 +1534,7 @@
         idx++;
     }
 
-    CFStringAppendFormat(description, NULL, CFSTR("%*s)}"), (int)level * (int)strlen(INDENT), "");
+    CFStringAppendFormat(description, NULL, CFSTR("%*s)}"), (int)level * strlen(INDENT), "");
 
     CFStringRef desc = CFStringCreateCopy(kCFAllocatorDefault, description);
     CFRelease(description);
@@ -1554,11 +1544,6 @@
 @end
 
 @implementation NSMutableOrderedSet
-
-- (instancetype)init
-{
-	return [super init];
-}
 
 + (id)orderedSetWithCapacity:(NSUInteger)capacity
 {
@@ -2220,8 +2205,7 @@
 
 - (void)removeObjectsWithOptions:(NSEnumerationOptions)options passingTest:(BOOL (^)(id obj, NSUInteger idx, BOOL *stop))test
 {
-    printf("STUB %s", __PRETTY_FUNCTION__);
-//  TODO
+#warning TODO
     DEBUG_BREAK();
 }
 
@@ -2232,9 +2216,8 @@
         [NSException raise:NSInvalidArgumentException format:@"Test block cannot be nil"];
         return;
     }
-    printf("STUB %s", __PRETTY_FUNCTION__);
 
-// TODO
+#warning TODO
     DEBUG_BREAK();
 }
 
@@ -3094,8 +3077,7 @@ static __NSPlaceholderOrderedSet *mutablePlaceholder = nil;
         return nil;
     }
 
-    NSCapacityCheck(capacity, 0x40000000,
-		    @"Please rethink the size of the capacity of the ordered set you are creating: %lu seems a bit excessive", (unsigned long)capacity);
+    NSCapacityCheck(capacity, 0x40000000, @"Please rethink the size of the capacity of the ordered set you are creating: %d seems a bit excessive", capacity);
     return (__NSPlaceholderOrderedSet *)[__NSOrderedSetM __new:NULL :capacity :NO];
 }
 

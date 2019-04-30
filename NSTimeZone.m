@@ -10,20 +10,7 @@
 #import <Foundation/NSCache.h>
 #import "CFInternal.h"
 
-#include <stdio.h>
-
 @implementation NSTimeZone
-
-- (void)encodeWithCoder:(NSCoder *)aCoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
 
 + (id)allocWithZone:(NSZone *)zone
 {
@@ -103,18 +90,6 @@
 @end
 
 @implementation NSTimeZone (NSExtendedTimeZone)
-
-- (NSString *)description
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (NSString *)timeZoneDataVersion
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
 
 + (NSTimeZone *)systemTimeZone
 {
@@ -252,12 +227,6 @@
 
 static NSCache *tzCache = nil;
 
-- (id)__initWithName:(NSString *)name cache:(BOOL)shouldCache
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
 + (id)immutablePlaceholder
 {
     static dispatch_once_t once = 0L;
@@ -325,10 +294,10 @@ SINGLETON_RR()
     return nil;
 }
 
-/*static NSTimeZone *NSTimeZoneCacheFind(NSString *name)
+static NSTimeZone *NSTimeZoneCacheFind(NSString *name)
 {
     return [tzCache objectForKey:name];
-}*/
+}
 
 static void NSTimeZoneCacheAdd(NSString *name, NSTimeZone *tz)
 {
@@ -360,36 +329,6 @@ static void NSTimeZoneCacheAdd(NSString *name, NSTimeZone *tz)
 @end
 
 @implementation __NSTimeZone
-
-- (void)dealloc
-{
-	[super dealloc];
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-+ (id)allocWithZone:(NSZone *)zone
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return NO;
-}
-
-+ (id)__new:(CFStringRef)name cache:(BOOL)shouldCache
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (id)__new:(CFStringRef)name data:(CFDataRef)data
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
 
 - (NSString *)localizedName:(NSTimeZoneNameStyle)style locale:(NSLocale *)locale
 {
@@ -436,7 +375,7 @@ static void NSTimeZoneCacheAdd(NSString *name, NSTimeZone *tz)
 
 - (NSString *)description
 {
-    CFStringRef description = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@ (%@) %ld"), [self name], [self abbreviation], (long)[self secondsFromGMT]);
+    CFStringRef description = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@ (%@) %d"), [self name], [self abbreviation], [self secondsFromGMT]);
     return [(NSString *)description autorelease];
 }
 

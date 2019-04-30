@@ -10,7 +10,6 @@
 #import <Foundation/NSArray.h>
 #import "NSObjectInternal.h"
 #import "NSFastEnumerationEnumerator.h"
-#include <stdio.h>
 
 CF_PRIVATE
 @interface __NSPlaceholderSet : NSMutableSet
@@ -34,17 +33,6 @@ CF_EXPORT NSUInteger _CFSetFastEnumeration(CFSetRef set, NSFastEnumerationState 
 static const NSUInteger kRemoveAllObjectsStackSize = 32;
 
 @implementation NSSet
-
-- (void)encodeWithCoder:(NSCoder *)aCoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return [NSSet init];
-}
 
 + (id)allocWithZone:(NSZone *)zone
 {
@@ -231,9 +219,6 @@ static CFSetCallBacks sNSCFSetCallBacks = {
     &_NSCFHash
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wobjc-designated-initializers"
-
 @implementation __NSPlaceholderSet
 
 + (id)immutablePlaceholder
@@ -272,8 +257,7 @@ SINGLETON_RR()
 {
     if (self == mutablePlaceholder)
     {
-        NSCapacityCheck(capacity, 0x40000000,
-			@"Please rethink the size of the capacity of the set you are creating: %lu seems a bit exessive", (unsigned long)capacity);
+        NSCapacityCheck(capacity, 0x40000000, @"Please rethink the size of the capacity of the set you are creating: %d seems a bit exessive", capacity);
         return (id)CFSetCreateMutable(kCFAllocatorDefault, capacity, &sNSCFSetCallBacks);
     }
     else
@@ -305,8 +289,6 @@ SINGLETON_RR()
 
 @end
 
-#pragma clang diagnostic pop
-
 @implementation NSSet (NSExtendedSet)
 
 - (void)__applyValues:(void (*)(const void *, void *))applier context:(void *)context
@@ -323,8 +305,7 @@ SINGLETON_RR()
     id *objects = malloc(sizeof(id) * count);
     if (objects == NULL)
     {
-        [NSException raise:NSMallocException
-		    format:@"unable to allocate space to store %lu objects", (unsigned long)count];
+        [NSException raise:NSMallocException format:@"unable to allocate space to store %d objects", count];
     }
 
     [self getObjects:objects count:count];
@@ -352,7 +333,7 @@ SINGLETON_RR()
 
     if (level > 0)
     {
-        indent = CFStringCreateWithFormat(kCFAllocatorDefault, (CFDictionaryRef)locale, CFSTR("%*c"), (int)level * 4, ' ');
+        indent = CFStringCreateWithFormat(kCFAllocatorDefault, (CFDictionaryRef)locale, CFSTR("%*c"), level * 4, ' ');
     }
 
     CFMutableStringRef s = CFStringCreateMutable(kCFAllocatorDefault, 0);
@@ -865,7 +846,7 @@ SINGLETON_RR()
     id *objects = malloc(sizeof(id) * count);
     if (objects == NULL)
     {
-        [NSException raise:NSMallocException format:@"unable to allocate space to store %lu objects", (unsigned long)count];
+        [NSException raise:NSMallocException format:@"unable to allocate space to store %d objects", count];
     }
 
     CFSetGetValues((CFSetRef)self, (const void **)objects);

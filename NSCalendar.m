@@ -9,8 +9,6 @@
 #import <Foundation/NSLocale.h>
 #import "NSCalendarInternal.h"
 #import "NSObjectInternal.h"
-#import <Foundation/NSRange.h>
-#include <stdio.h>
 
 extern void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date);
 extern CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
@@ -36,139 +34,6 @@ const NSCalendarIdentifier NSCalendarIdentifierRepublicOfChina = @"NSCalendarIde
 
 
 @implementation NSCalendar
-
-- (id)initWithCalendarIdentifier:(NSCalendarIdentifier)ident
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSCalendarIdentifier)calendarIdentifier
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return NSCalendarIdentifierGregorian;
-}
-
-- (void)setLocale:(NSLocale *)locale
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (NSLocale *)locale
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (void)setTimeZone:(NSTimeZone *)tz
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (NSTimeZone *)timeZone
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (void)setFirstWeekday:(NSUInteger)weekday
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (NSUInteger)firstWeekday
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return 0;
-}
-
-- (void)setMinimumDaysInFirstWeek:(NSUInteger)mdw
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (NSUInteger)minimumDaysInFirstWeek
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return 5;
-}
-
-- (NSRange)minimumRangeOfUnit:(NSCalendarUnit)unit
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return NSMakeRange(0, 0);
-}
-
-- (NSRange)maximumRangeOfUnit:(NSCalendarUnit)unit
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return NSMakeRange(0, 0);
-}
-
-- (NSRange)rangeOfUnit:(NSCalendarUnit)smaller inUnit:(NSCalendarUnit)larger forDate:(NSDate *)date
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return NSMakeRange(0, 0);
-}
-
-- (NSUInteger)ordinalityOfUnit:(NSCalendarUnit)smaller inUnit:(NSCalendarUnit)larger forDate:(NSDate *)date
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return 0;
-}
-
-- (NSDate *)dateFromComponents:(NSDateComponents *)comps
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSDateComponents *)components:(NSUInteger)unitFlags fromDate:(NSDate *)date
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSDate *)dateByAddingComponents:(NSDateComponents *)comps toDate:(NSDate *)date options:(NSUInteger)opts
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (NSDateComponents *)components:(NSUInteger)unitFlags fromDate:(NSDate *)startingDate toDate:(NSDate *)resultDate options:(NSUInteger)opts
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (id)autoupdatingCurrentCalendar
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-- (id)copyWithZone:(NSZone *)zone
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
-
-+ (BOOL)supportsSecureCoding
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return YES;
-}
-
-- (void)encodeWithCoder:(NSCoder *)aCoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder
-{
-	printf("STUB %s", __PRETTY_FUNCTION__);
-	return nil;
-}
 
 + (id)allocWithZone:(NSZone *)zone
 {
@@ -562,9 +427,7 @@ US Locale Fiscal Quarters:
     char format[MAX_COMPS];
     int componentVector[MAX_COMPS];
 
-    // unused variable
-    //int count =
-    makeCFCalendarComponentVector(comps, componentVector, format);
+    int count = makeCFCalendarComponentVector(comps, componentVector, format);
 
     // TODO handle "yMldHms" for day of week - also era, nanoseconds, etc.
     if (!_CFCalendarAddComponentsV((CFCalendarRef)self, &absTime, opts, format, componentVector, strlen(format)))

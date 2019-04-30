@@ -478,7 +478,7 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
 	  if (NO
 	    == class_addIvar(newClass, iVarName, iVarSize, iVarAlign, iVarType))
 	    {
-	      //printf("Error adding ivar '%s' of type '%s'", iVarName, iVarType);
+	      //NSLog(@"Error adding ivar '%s' of type '%s'", iVarName, iVarType);
 	    }
 	}
     }

@@ -5,7 +5,7 @@
 //  Copyright (c) 2014 Apportable. All rights reserved.
 //
 
-//#import <Foundation/NSObject.h>
+#import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSMethodSignature.h>
 #import <Foundation/NSInvocation.h>
@@ -73,9 +73,6 @@ void __CFZombifyNSObject(void) {
 }
 
 static void NSUnrecognizedForwarding() { __asm__("int3"); }
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 
 @implementation NSObject (NSObject)
 
@@ -292,8 +289,6 @@ static void NSUnrecognizedForwarding() { __asm__("int3"); }
 }
 
 @end
-
-#pragma clang diagnostic pop
 
 @implementation NSObject (__NSIsKinds)
 

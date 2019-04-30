@@ -841,7 +841,6 @@ CF_INLINE dispatch_queue_t __CFDispatchQueueGetGenericBackground(void) {
 
 #endif
 
-void CFSortIndexes(CFIndex *indexBuffer, CFIndex count, CFOptionFlags opts, CFComparisonResult (^cmp)(CFIndex, CFIndex));
 
 CF_EXTERN_C_END
 
