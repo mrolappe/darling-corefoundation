@@ -17,9 +17,9 @@
 @implementation NSMutableAttributedString
 
 @end
+*/
 
 @implementation __NSCFAttributedString
-*/
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
 {
