@@ -51,7 +51,7 @@ __CF_forwarding_prep_0:      // top of stack is used as marg_list
     sub sp, sp, #8          // pad the stack: sp -= 8, marg_list @ sp+16
     add r1, sp, #16         // use marg_list as return strage pointer
     add r0, sp, #16         // load marg_list
-    bl ____forwarding___     // call through
+    bl ___forwarding___     // call through
     sub sp, fp, #4          // restore stack
     ldmfd sp!, {fp, lr}     // destroy stack frame
     cmp r0, #0              // check for forwarding completion
@@ -80,7 +80,7 @@ __CF_forwarding_prep_1:      // top of stack is used as marg_list
     sub sp, sp, #8          // pad the stack
     add r1, r0, #0          // load stret pointer as return storage pointer
     add r0, sp, #20         // load marg_list, skipping the stret pointer
-    bl ____forwarding___     // call through
+    bl ___forwarding___     // call through
     sub sp, fp, #4          // restore stack
     ldmfd sp!, {fp, lr}     // destroy stack frame
     cmp r0, #0              // check for forwarding completion
@@ -119,7 +119,7 @@ __CF_forwarding_prep_0:
     movl $0x0, 8(%esp)      // clear out return value space
     movl $0x0, 12(%esp)
 
-    call ____forwarding___   // call through
+    call ___forwarding___   // call through
     mov 4(%esp), %edx       // temporarily save return storage pointer
 
     mov %ebp, %esp          // restore stack
@@ -162,7 +162,7 @@ __CF_forwarding_prep_1:
     mov 8(%ebp), %eax       // load stret pointer
     mov %eax, 4(%esp)       // pass as second argument
 
-    call ____forwarding___   // call through
+    call ___forwarding___   // call through
 
     mov %ebp, %esp          // restore stack
     pop %ebp                // pop stack frame
@@ -207,7 +207,7 @@ __CF_forwarding_prep_1:
 
     movq   %rsp, %rdi
     leaq   0xc0(%rsp), %rsi
-    call   ____forwarding___ // call through
+    call   ___forwarding___  // call through
 
     cmpq   $0, %rax          // check for forwarding completion
     jne    Lfail
