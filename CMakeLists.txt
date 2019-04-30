@@ -125,6 +125,7 @@ set(cf_sources
 	NSError.m
 	NSException.m
 	NSFastEnumerationEnumerator.m
+	NSForwarding.m
 	NSGenericDeallocHandler.m
 	NSCharacterSet.m
 	NSInputStream.m
