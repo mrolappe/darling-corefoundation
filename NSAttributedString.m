@@ -8,6 +8,8 @@
 #import "NSAttributedStringInternal.h"
 #import "NSObjectInternal.h"
 
+// These are in Foundation
+/*
 @implementation NSAttributedString
 
 @end
@@ -17,6 +19,7 @@
 @end
 
 @implementation __NSCFAttributedString
+*/
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
 {
