@@ -7,6 +7,7 @@
 
 #import "NSAttributedStringInternal.h"
 #import "NSObjectInternal.h"
+#import <objc/runtime.h>
 
 // These are in Foundation
 /*
@@ -107,7 +108,7 @@ static BOOL _rangeCheckIndex(__NSCFAttributedString *self, NSUInteger index)
 
 - (Class)classForCoder
 {
-    return [NSAttributedString self];
+    return [objc_getClass("NSAttributedString") self];
 }
 
 - (id)mutableCopyWithZone:(NSZone *)zone
@@ -131,7 +132,7 @@ static BOOL _rangeCheckIndex(__NSCFAttributedString *self, NSUInteger index)
     if (range.length == 0 && res == nil)
     {
         // Core Foundation returns NULL/nil here, but Foundation returns an empty attributed string
-        res = [[NSAttributedString alloc] initWithString: @""];
+        res = [[objc_getClass("NSAttributedString") alloc] initWithString: @""];
     }
     return [res autorelease];
 }
