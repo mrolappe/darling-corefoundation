@@ -269,6 +269,20 @@ SINGLETON_RR()
 
 - (id)initWithObjects:(const id [])objects count:(NSUInteger)cnt
 {
+    if (objects == nil && cnt != 0) {
+        [NSException raise:NSInvalidArgumentException
+                    format:(NSString *)CFSTR("The object array is nil while the count is not zero")];
+    }
+    
+    // This probably isn't the most efficent way to error check, but I can't think of a better way to implement this.
+    for (int i = 0; i < cnt; i++) {
+        id value = objects[i];
+        if (value == nil) {
+            [NSException raise:NSInvalidArgumentException
+                        format:[(NSString *)CFStringCreateWithFormat(NULL,NULL,CFSTR("The object at objects[%d] is nil."),i) autorelease]];
+        }
+    }
+
     if (self == mutablePlaceholder)
     {
         CFMutableSetRef set = CFSetCreateMutable(kCFAllocatorDefault, cnt, &sNSCFSetCallBacks);
