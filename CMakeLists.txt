@@ -178,10 +178,14 @@ add_separated_framework(CoreFoundation
 		-Wl,-segprot,__UNICODE,r,r"
 )
 
+if (TARGET_i386)
 set_property(TARGET CoreFoundation_i386 APPEND_STRING PROPERTY
   LINK_FLAGS " -Wl,-reexported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/reexport_i386.exp")
+endif (TARGET_i386)
+if (TARGET_x86_64)
 set_property(TARGET CoreFoundation_x86_64 APPEND_STRING PROPERTY
   LINK_FLAGS " -Wl,-reexported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/reexport_x86_64.exp")
+endif (TARGET_x86_64)
 
 set_source_files_properties(${cf_c_sources} PROPERTIES COMPILE_FLAGS "-x objective-c")
 
