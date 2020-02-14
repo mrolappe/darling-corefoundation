@@ -1216,14 +1216,9 @@ static NSString *_getDescription(id obj, id locale, int level)
 {
     if (_CFDictionaryIsMutable((CFDictionaryRef)self))
     {
-        if (key == nil)
+        if ((obj == nil) || (key == nil))
         {
-            @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Cannot set nil keys" userInfo:nil];
-            return;
-        }
-        if (obj == nil)
-        {
-            [self removeObjectForKey: key];
+            @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Cannot set nil objects nor nil keys" userInfo:nil];
             return;
         }
 
