@@ -3631,6 +3631,10 @@ void CFRunLoopObserverGetContext(CFRunLoopObserverRef rlo, CFRunLoopObserverCont
     *context = rlo->_context;
 }
 
+void __CFRunLoopSetOptionsReason(int opts, CFStringRef reason)
+{
+}
+
 #pragma mark -
 #pragma mark CFRunLoopTimer
 

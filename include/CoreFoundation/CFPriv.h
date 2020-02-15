@@ -653,6 +653,12 @@ CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetDistributedCenter(void)
 CF_EXPORT const CFStringRef kCFNumberFormatterUsesCharacterDirection CF_AVAILABLE(10_9, 6_0);	// CFBoolean
 CF_EXPORT const CFStringRef kCFDateFormatterUsesCharacterDirection CF_AVAILABLE(10_9, 6_0);	// CFBoolean
 
+// Related to macOS app nap
+enum {
+    __CFRunLoopOptionsTakeAssertion,
+    __CFRunLoopOptionsDropAssertion
+};
+void __CFRunLoopSetOptionsReason(int opts, CFStringRef reason);
 
 CF_EXTERN_C_END
 
