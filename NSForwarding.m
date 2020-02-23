@@ -147,8 +147,9 @@ id __forwarding___(struct objc_sendv_margs *args, void *returnStorage)
     NSUInteger signatureArgumentCount = [signature numberOfArguments];
     if (signatureVerification != signatureArgumentCount)
     {
+        printf("NSForwardSignatureError: invoked with %d args, but %d expected. Selector %s, class %s\n", signatureVerification, signatureArgumentCount, selName, className);
         RELEASE_LOG("Forward invocation was invoked with %d arguments but claims by signature to respond to %d arguments, break on __NSForwardSignatureError to debug", signatureVerification, signatureArgumentCount);
-        __NSForwardSignatureError();
+        // __NSForwardSignatureError();
     }
 
     for (NSUInteger i = 2; i < MIN(signatureVerification, signatureArgumentCount); i++)
