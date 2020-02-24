@@ -167,7 +167,7 @@ static Boolean _initedMainBundle = false;
 static CFBundleRef _mainBundle = NULL;
 
 // Forward declares functions.
-static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL, Boolean alreadyLocked, Boolean doFinalProcessing);
+static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL, Boolean alreadyLocked, Boolean doFinalProcessing, Boolean noCaches);
 static CFURLRef _CFBundleCopyExecutableURLIgnoringCache(CFBundleRef bundle);
 static void _CFBundleEnsureBundlesUpToDateWithHintAlreadyLocked(CFStringRef hint);
 static void _CFBundleEnsureAllBundlesUpToDateAlreadyLocked(void);
@@ -832,7 +832,7 @@ static CFBundleRef _CFBundleGetMainBundleAlreadyLocked(void) {
             // make sure that main bundle has executable path
             //??? what if we are not the main executable in the bundle?
             // NB doFinalProcessing must be false here, see below
-            _mainBundle = _CFBundleCreate(kCFAllocatorSystemDefault, bundleURL, true, false);
+            _mainBundle = _CFBundleCreate(kCFAllocatorSystemDefault, bundleURL, true, false, false);
             if (_mainBundle) {
                 // make sure that the main bundle is listed as loaded, and mark it as executable
                 _mainBundle->_isLoaded = true;
@@ -1035,7 +1035,7 @@ CFBundleRef _CFBundleGetExistingBundleWithBundleURL(CFURLRef bundleURL) {
     return bundle;
 }
 
-static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL, Boolean alreadyLocked, Boolean doFinalProcessing) {
+static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL, Boolean alreadyLocked, Boolean doFinalProcessing, Boolean noCaches) {
     CFBundleRef bundle = NULL;
     char buff[CFMaxPathSize];
     CFDateRef modDate = NULL; // do not actually fetch the modDate, since that can cause something like 7609956, unless absolutely found to be necessary in the future
@@ -1048,10 +1048,13 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
 
     newURL = CFURLCreateFromFileSystemRepresentation(allocator, (uint8_t *)buff, strlen(buff), true);
     if (!newURL) newURL = (CFURLRef)CFRetain(bundleURL);
-    bundle = _CFBundleCopyBundleForURL(newURL, alreadyLocked);
-    if (bundle) {
-        CFRelease(newURL);
-        return bundle;
+
+    if (!noCaches) {
+        bundle = _CFBundleCopyBundleForURL(newURL, alreadyLocked);
+        if (bundle) {
+            CFRelease(newURL);
+            return bundle;
+        }
     }
     
     localVersion = _CFBundleGetBundleVersionForURL(newURL);
@@ -1163,7 +1166,8 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     // Do this so that we can use the dispatch_once on the ivar of this bundle safely
     OSMemoryBarrier();
     
-    _CFBundleAddToTables(bundle, alreadyLocked);
+    if (!noCaches)
+        _CFBundleAddToTables(bundle, alreadyLocked);
 
     if (doFinalProcessing) {
         if (_CFBundleNeedsInitPlugIn(bundle)) {
@@ -1177,7 +1181,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
 }
 
 CFBundleRef CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL) {
-    return _CFBundleCreate(allocator, bundleURL, false, true);
+    return _CFBundleCreate(allocator, bundleURL, false, true, false);
 }
 
 CFArrayRef CFBundleCreateBundlesFromDirectory(CFAllocatorRef alloc, CFURLRef directoryURL, CFStringRef bundleType) {
@@ -2417,7 +2421,7 @@ static void _CFBundleEnsureBundleExistsForImagePath(CFStringRef imagePath) {
         if (!bundle) {
             // Ensure bundle exists by creating it if necessary
             // NB doFinalProcessing must be false here, see below
-            bundle = _CFBundleCreate(kCFAllocatorSystemDefault, curURL, true, false);
+            bundle = _CFBundleCreate(kCFAllocatorSystemDefault, curURL, true, false, false);
             createdBundle = true;
         }
         if (bundle) {
@@ -2623,6 +2627,5 @@ CF_EXPORT CFURLRef CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle) {
 }
 
 CF_EXPORT CFBundleRef _CFBundleCreateUnique(CFAllocatorRef allocator, CFURLRef bundleURL) {
-	printf("_CFBundleCreateUnique stub\n");
-	return NULL;
+    return _CFBundleCreate(allocator, bundleURL, false, true, true);
 }
