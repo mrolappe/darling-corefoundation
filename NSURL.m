@@ -15,6 +15,7 @@
 #import "CFPriv.h"
 #import "NSURLInternal.h"
 #import <objc/runtime.h>
+#include <sys/statvfs.h>
 #include <sys/stat.h>
 
 #define STACK_BUFFER_SIZE 100 // pretty safe bet this will be quite unlikely to use more than this since there are only 94 properties
@@ -448,6 +449,48 @@ static CFTypeRef CFURLCreatePropertyForKey(CFURLRef url, CFStringRef key, CFErro
     else if (CFEqual(key, kCFURLFileResourceTypeKey))
     {
         // Key for the resource’s object type, returned as a CFString object. See “File Resource Types” for possible values.
+    }
+    else if (CFEqual(key, kCFURLVolumeAvailableCapacityKey))
+    {
+        UInt8 path[PATH_MAX] = { 0 };
+
+        if (CFURLGetFileSystemRepresentation(url, true, path, PATH_MAX))
+        {
+            struct statvfs vfs;
+            if (statvfs(path, &vfs) == 0)
+            {
+                long long b = ((UInt64)vfs.f_bavail) * vfs.f_bsize;
+                value = CFNumberCreate(kCFAllocatorDefault, kCFNumberLongLongType, &b);
+            }
+        }
+    }
+    else if (CFEqual(key, kCFURLVolumeAvailableCapacityForImportantUsageKey))
+    {
+        UInt8 path[PATH_MAX] = { 0 };
+
+        if (CFURLGetFileSystemRepresentation(url, true, path, PATH_MAX))
+        {
+            struct statvfs vfs;
+            if (statvfs(path, &vfs) == 0)
+            {
+                long long b = ((UInt64)vfs.f_bfree) * vfs.f_bsize;
+                value = CFNumberCreate(kCFAllocatorDefault, kCFNumberLongLongType, &b);
+            }
+        }
+    }
+    else if (CFEqual(key, kCFURLVolumeTotalCapacityKey))
+    {
+        UInt8 path[PATH_MAX] = { 0 };
+
+        if (CFURLGetFileSystemRepresentation(url, true, path, PATH_MAX))
+        {
+            struct statvfs vfs;
+            if (statvfs(path, &vfs) == 0)
+            {
+                long long b = ((UInt64)vfs.f_blocks) * vfs.f_bsize;
+                value = CFNumberCreate(kCFAllocatorDefault, kCFNumberLongLongType, &b);
+            }
+        }
     }
 
     return value;

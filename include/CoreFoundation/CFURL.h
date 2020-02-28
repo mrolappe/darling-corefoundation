@@ -909,6 +909,9 @@ const CFStringRef kCFURLVolumeAvailableCapacityKey CF_AVAILABLE(10_6, 4_0);
     /* Total free space in bytes (Read-only, value type CFNumber) */
 
 CF_EXPORT
+const CFStringRef kCFURLVolumeAvailableCapacityForImportantUsageKey CF_AVAILABLE(10_13, 11_0);
+
+CF_EXPORT
 const CFStringRef kCFURLVolumeResourceCountKey CF_AVAILABLE(10_6, 4_0);
     /* Total number of resources on the volume (Read-only, value type CFNumber) */
 

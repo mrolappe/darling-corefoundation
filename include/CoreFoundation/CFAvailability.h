@@ -86,6 +86,7 @@
 #define __NSi_10_11 introduced=10.11
 #define __NSi_10_12 introduced=10.12
 #define __NSi_10_12_1 introduced=10.12.1
+#define __NSi_10_13 introduced=10.13
 
 #define __NSd_2_0 ,deprecated=2.0
 #define __NSd_2_1 ,deprecated=2.1

@@ -52,6 +52,7 @@ const CFStringRef kCFURLIsAliasFileKey = CFSTR("NSURLIsAliasFileKey");
 const CFStringRef kCFURLVolumeLocalizedFormatDescriptionKey = CFSTR("NSURLVolumeLocalizedFormatDescriptionKey");
 const CFStringRef kCFURLVolumeTotalCapacityKey = CFSTR("NSURLVolumeTotalCapacityKey");
 const CFStringRef kCFURLVolumeAvailableCapacityKey = CFSTR("NSURLVolumeAvailableCapacityKey");
+const CFStringRef kCFURLVolumeAvailableCapacityForImportantUsageKey = CFSTR("NSURLVolumeAvailableCapacityForImportantUsageKey");
 const CFStringRef kCFURLVolumeResourceCountKey = CFSTR("NSURLVolumeResourceCountKey");
 const CFStringRef kCFURLVolumeSupportsPersistentIDsKey = CFSTR("NSURLVolumeSupportsPersistentIDsKey");
 const CFStringRef kCFURLVolumeSupportsSymbolicLinksKey = CFSTR("NSURLVolumeSupportsSymbolicLinksKey");
