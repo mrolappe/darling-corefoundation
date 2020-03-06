@@ -2,7 +2,7 @@ project(corefoundation)
 
 include(darling_framework)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -fblocks -fconstant-cfstrings -fexceptions \
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fblocks -fconstant-cfstrings -fexceptions \
 	-include ${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation_Prefix.h \
 	-include ${CMAKE_CURRENT_SOURCE_DIR}/macros.h \
 	-Wno-bridge-cast \
@@ -21,6 +21,9 @@ add_definitions(-DCF_BUILDING_CF
 	-DDISPATCH_SUPPORT=1
 	-D__CONSTANT_CFSTRINGS__=1
 	-D__CONSTANT_STRINGS__=1
+
+	-w
+	-nostdinc
 )
 
 set(cf_c_sources
