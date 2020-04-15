@@ -36,8 +36,8 @@ CFTypeRef _CFXPCCreateCFObjectFromXPCObject(xpc_object_t xo) {
 
 	if (type == XPC_TYPE_DICTIONARY) {
 		size_t count = xpc_dictionary_get_count(xo);
-		__block CFStringRef* keys = malloc(count * sizeof(CFStringRef));
-		__block CFTypeRef* values = malloc(count * sizeof(CFTypeRef));
+		CFStringRef* keys = malloc(count * sizeof(CFStringRef));
+		CFTypeRef* values = malloc(count * sizeof(CFTypeRef));
 		__block size_t idx = 0;
 
 		xpc_dictionary_apply(xo, ^bool(const char* key, xpc_object_t value) {
@@ -61,7 +61,7 @@ CFTypeRef _CFXPCCreateCFObjectFromXPCObject(xpc_object_t xo) {
 
 	if (type == XPC_TYPE_ARRAY) {
 		size_t count = xpc_array_get_count(xo);
-		__block CFTypeRef* entries = malloc(count * sizeof(CFTypeRef));
+		CFTypeRef* entries = malloc(count * sizeof(CFTypeRef));
 
 		xpc_array_apply(xo, ^bool(size_t idx, xpc_object_t entry) {
 			entries[idx] = _CFXPCCreateCFObjectFromXPCObject(entry);
@@ -82,9 +82,7 @@ CFTypeRef _CFXPCCreateCFObjectFromXPCObject(xpc_object_t xo) {
 	}
 
 	if (type == XPC_TYPE_BOOL) {
-		CFBooleanRef boolean = xpc_bool_get_value(xo) == true ? kCFBooleanTrue : kCFBooleanFalse;
-		CFRetain(boolean); // are we supposed to do this? ¯\_(ツ)_/¯
-		return boolean;
+		return CFRetain(xpc_bool_get_value(xo) == true ? kCFBooleanTrue : kCFBooleanFalse);
 	}
 
 	if (type == XPC_TYPE_DATA) {
@@ -93,16 +91,18 @@ CFTypeRef _CFXPCCreateCFObjectFromXPCObject(xpc_object_t xo) {
 
 	if (type == XPC_TYPE_INT64) {
 		int64_t val = xpc_int64_get_value(xo);
+		return CFNumberCreate(NULL, kCFNumberSInt64Type, &val);
 	}
 
 	if (type == XPC_TYPE_UINT64) {
 		uint64_t val = xpc_uint64_get_value(xo);
+		// CFNumber doesn't provide an unsigned 64-bit integer type
+		// i guess kCFNumberSInt64Type is the next best thing
 		return CFNumberCreate(NULL, kCFNumberSInt64Type, &val);
 	}
 
 	if (type == XPC_TYPE_NULL) {
-		CFRetain(kCFNull); // again, do we have to retain constants?
-		return kCFNull;
+		return CFRetain(kCFNull);
 	}
 
 	// TODO: double, date, and uuid
