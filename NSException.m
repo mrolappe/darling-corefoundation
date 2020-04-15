@@ -57,130 +57,129 @@ NSString *const NSFileHandleOperationException = @"NSFileHandleOperationExceptio
 
 @implementation NSException
 
-- (id)init
-{
+- (instancetype) init {
     [self release]; // initWithName:reason:userInfo: is the only acceptable init method
     return nil;
 }
 
-- (id)initWithName:(NSString *)aName reason:(NSString *)aReason userInfo:(NSDictionary *)aUserInfo
+- (instancetype) initWithName: (NSExceptionName) name
+                       reason: (NSString *) reason
+                     userInfo: (NSDictionary *) userInfo
 {
     self = [super init];
-    if (self)
-    {
-        name = [aName copy];
-        reason = [aReason copy];
-        userInfo = [aUserInfo copy];
+    if (self) {
+        _name = [name copy];
+        _reason = [reason copy];
+        _userInfo = [userInfo copy];
     }
     return self;
 }
 
-- (id)copyWithZone:(NSZone *)zone
-{
+- (instancetype) copyWithZone: (NSZone *) zone {
     return [self retain];
 }
 
-- (void)dealloc
-{
-    [name release];
-    [reason release];
-    [userInfo release];
-    [reserved release];
+- (void) dealloc {
+    [_name release];
+    [_reason release];
+    [_userInfo release];
+    [_reserved release];
     [super dealloc];
 }
 
-- (void)raise
-{
+- (void) raise {
     @throw self;
 }
 
-+ (void)raise:(NSString *)name format:(NSString *)format, ...
++ (void) raise: (NSExceptionName) name
+        format: (NSString *) format, ...
 {
     va_list args;
     va_start(args, format);
-    CFStringRef reason = CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, NULL, (CFStringRef)format, args);
+    CFStringRef reason = CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, NULL, (CFStringRef) format, args);
     va_end(args);
-    [[self exceptionWithName:name reason:(NSString *)reason userInfo:nil] raise];
+    NSException *exc = [self exceptionWithName: name
+                                        reason: reason
+                                      userInfo: nil];
+    [exc raise];
     CFRelease(reason);
 }
 
-+ (void)raise:(NSString *)name format:(NSString *)format arguments:(va_list)args
++ (void) raise: (NSExceptionName) name
+        format: (NSString *) format
+     arguments: (va_list) args
 {
-    CFStringRef reason = CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, NULL, (CFStringRef)format, args);
-    [[self exceptionWithName:name reason:(NSString *)reason userInfo:nil] raise];
+    CFStringRef reason = CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, NULL, (CFStringRef) format, args);
+    NSException *exc = [self exceptionWithName: name
+                                        reason: reason
+                                      userInfo: nil];
+    [exc raise];
     CFRelease(reason);
 }
 
-+ (NSException *)exceptionWithName:(NSString *)name reason:(NSString *)reason userInfo:(NSDictionary *)userInfo
++ (NSException *) exceptionWithName: (NSExceptionName) name
+                             reason: (NSString *) reason
+                           userInfo: (NSDictionary *) userInfo
 {
-    return [[[self alloc] initWithName:name reason:reason userInfo:userInfo] autorelease];
+    return [[[self alloc] initWithName: name
+                                reason: reason
+                              userInfo: userInfo] autorelease];
 }
 
-- (NSString *)name
-{
-    return name;
+- (NSExceptionName) name {
+    return _name;
 }
 
-- (NSString *)reason
-{
-    return reason;
+- (NSString *) reason {
+    return _reason;
 }
 
-- (NSDictionary *)userInfo
-{
-    return userInfo;
+- (NSDictionary *) userInfo {
+    return _userInfo;
 }
 
-- (BOOL)_installStackTraceKeyIfNeeded
-{
-    if (reserved == NULL)
-    {
-        reserved = [[NSMutableDictionary alloc] init];
+- (BOOL) _installStackTraceKeyIfNeeded {
+    if (_reserved == NULL) {
+        _reserved = [[NSMutableDictionary alloc] init];
     }
 
     NSArray *callStackSymbols = nil;
-    if (userInfo != nil)
-    {
-        callStackSymbols = [userInfo objectForKey:@"NSStackTraceKey"];
+    if (_userInfo != nil) {
+        callStackSymbols = _userInfo[@"NSStackTraceKey"];
     }
 
-    if (callStackSymbols == nil)
-    {
-        callStackSymbols = [reserved objectForKey:@"callStackSymbols"];
-    }
-    else
-    {
-        [reserved setObject:callStackSymbols forKey:@"callStackSymbols"];
+    if (callStackSymbols == nil) {
+        callStackSymbols = _reserved[@"callStackSymbols"];
+    } else {
+        _reserved[@"callStackSymbols"] = callStackSymbols;
     }
 
-    if (callStackSymbols == nil)
-    {
+    if (callStackSymbols == nil) {
         void *stack[128] = { NULL };
         CFStringRef symbols[128] = { nil };
         CFNumberRef returnAddresses[128] = { nil };
 
-        int count = backtrace(stack, sizeof(stack)/sizeof(stack[0]));
+        int count = backtrace(stack, sizeof(stack) / sizeof(stack[0]));
         char **sym = backtrace_symbols(stack, count);
-        if (sym == NULL)
-        {
+        if (sym == NULL) {
             return NO;
         }
 
-        // make sure to skip this frame since it is just an instantiator
-        for (int i = 1; i < count; i++)
-        {
+        // Make sure to skip this frame since it is just an instantiator.
+        for (int i = 1; i < count; i++) {
             returnAddresses[i - 1] = CFNumberCreate(kCFAllocatorDefault, kCFNumberLongType, &stack[i]);
             symbols[i - 1] = CFStringCreateWithCString(kCFAllocatorDefault, sym[i], kCFStringEncodingUTF8);
         }
 
         free(sym);
-        callStackSymbols = [[NSArray alloc] initWithObjects:(id *)symbols count:count - 1];
-        NSArray *callStackReturnAddresses = [[NSArray alloc] initWithObjects:(id *)returnAddresses count:count - 1];
-        [reserved setObject:callStackSymbols forKey:@"callStackSymbols"];
-        [reserved setObject:callStackReturnAddresses forKey:@"callStackReturnAddresses"];
-        
-        for (int i = 1; i < count; i++)
-        {
+        callStackSymbols = [[NSArray alloc] initWithObjects: (id *) symbols
+                                                      count: count - 1];
+        NSArray *callStackReturnAddresses = [[NSArray alloc] initWithObjects: (id *) returnAddresses
+                                                                       count: count - 1];
+        _reserved[@"callStackSymbols"] = callStackSymbols;
+        _reserved[@"callStackReturnAddresses"] = callStackReturnAddresses;
+
+        for (int i = 1; i < count; i++) {
             CFRelease(returnAddresses[i - 1]);
             CFRelease(symbols[i - 1]);
         }
@@ -192,24 +191,19 @@ NSString *const NSFileHandleOperationException = @"NSFileHandleOperationExceptio
     return callStackSymbols != nil;
 }
 
-- (NSArray *)callStackReturnAddresses
-{
-    return [reserved objectForKey:@"callStackReturnAddresses"];
+- (NSArray *) callStackReturnAddresses {
+    return _reserved[@"callStackReturnAddresses"];
 }
 
-- (NSArray *)callStackSymbols
-{
-    return [reserved objectForKey:@"callStackSymbols"];
+- (NSArray *) callStackSymbols {
+    return _reserved[@"callStackSymbols"];
 }
 
-- (NSString *)description
-{
-    if (reason != nil)
-    {
-        return reason;
+- (NSString *) description {
+    if (_reason != nil) {
+        return _reason;
     }
-
-    return name;
+    return _name;
 }
 
 @end
