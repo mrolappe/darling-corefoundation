@@ -166,7 +166,7 @@
     return _types[0].size;
 }
 
-- (NSMethodType *)_argInfo:(int)index
+- (NSMethodType *)_argInfo:(NSUInteger)index
 {
     return &_types[index];
 }
