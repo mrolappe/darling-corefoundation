@@ -49,38 +49,38 @@
 // NSData rather than to the original string.
 - (void)_retainArgument:(NSUInteger)idx
 {
-    NSMethodType *argInfo= [_signature _argInfo:idx];
+    NSMethodType *argInfo = [_signature _argInfo: idx];
     const char *type = stripQualifiersAndComments(argInfo->type);
-    void **arg = [self _idxToArg:idx];
+    void **arg = [self _idxToArg: idx];
 
-    id object = nil;
-
-    switch (*type)
+    if (type[0] == _C_ID)
     {
-        case _C_ID:
-            object = *arg;
-            break;
-        case _C_CHARPTR:
+        id object = (id) *arg;
+        if (object != nil)
         {
-            NSUInteger length = strlen(*arg) + 1;
-            char *copy = malloc(length);
-            strlcpy(copy, *arg, length);
-            *arg = copy;
-
-            object = [NSData dataWithBytesNoCopy:copy length:length freeWhenDone:YES];
-
-            break;
+            [_container addObject: (id) *arg];
         }
-        // In all other cases, store nothing.
-        default:
-            break;
     }
-
-    if (object != _container[idx])
+    else if (type[0] == _C_CHARPTR)
     {
-        [_container[idx] release];
-        _container[idx] = [object retain];
+        char *str = (char *) *arg;
+        if (str != NULL)
+        {
+            NSUInteger length = strlen(str) + 1;
+            NSData *data = [NSData dataWithBytes: str length: length];
+            *arg = [data bytes];
+            [_container addObject: data];
+        }
     }
+}
+
+- (void) _addAttachedObject: (id) object
+{
+    if (_container == nil)
+    {
+        _container = [[NSMutableArray alloc] init];
+    }
+    [_container addObject: object];
 }
 
 - (instancetype)initWithMethodSignature:(NSMethodSignature *)sig
@@ -110,9 +110,6 @@
             void **ret = _frame;
             *ret = _retdata;
         }
-
-        _container = NULL;
-        _retainedArgs = NO;
     }
 
     return self;
@@ -126,23 +123,7 @@
 
 - (void)dealloc
 {
-    if (_container)
-    {
-        int len = [_signature numberOfArguments] + 1;
-
-        for (int i = 0; i < len; i++)
-        {
-            if (_container[i])
-            {
-                [_container[i] release];
-                _container[i] = nil;
-            }
-        }
-
-        free(_container);
-        _container = NULL;
-    }
-
+    [_container release];
     [_signature release];
     free(_retdata);
     [super dealloc];
@@ -164,10 +145,13 @@
     {
         return;
     }
+    _retainedArgs = YES;
 
     NSUInteger capacity = [_signature numberOfArguments] + 1; // Add one for return value.
-    _container = (id *)calloc(sizeof(id), capacity);
-    _retainedArgs = YES;
+    if (_container == nil)
+    {
+        _container = [[NSMutableArray alloc] initWithCapacity: capacity];
+    }
 
     for (NSUInteger idx = 0; idx < capacity; idx++)
     {
@@ -309,6 +293,7 @@
 
     if (_retainedArgs)
     {
+        // Retain the return value.
         [self _retainArgument:0];
     }
 }
