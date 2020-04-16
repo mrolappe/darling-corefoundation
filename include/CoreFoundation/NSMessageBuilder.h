@@ -1,7 +1,7 @@
 #import <Foundation/NSInvocation.h>
 #import <Foundation/NSMethodSignature.h>
 
-extern id _NSMessageBuilder(id proxy, NSInvocation **inv, SEL _cmd, void *arg);
+extern id _NSMessageBuilder(id proxy, NSInvocation **inv);
 
 NS_ROOT_CLASS
 @interface __NSMessageBuilder
@@ -9,7 +9,7 @@ NS_ROOT_CLASS
 @public
     Class isa;
     id _target;
-    id *_addr;
+    NSInvocation **_addr;
 }
 
 + (void)initialize;
