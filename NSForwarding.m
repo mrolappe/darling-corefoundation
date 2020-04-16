@@ -49,8 +49,9 @@ id __forwarding___(struct objc_sendv_margs *args, void *returnStorage)
 {
     id self = (id)args->a[0];
     SEL _cmd = (SEL)args->a[1];
+    Class class = object_getClass(self);
 
-    const char *className = object_getClassName(self);
+    const char *className = class_getName(class);
 
     if (strncmp(className, ZOMBIE_PREFIX, strlen(ZOMBIE_PREFIX)) == 0)
     {
@@ -70,12 +71,17 @@ id __forwarding___(struct objc_sendv_margs *args, void *returnStorage)
     }
 
     long long result = 0LL;
-    id target = [self forwardingTargetForSelector:_cmd];
+
+    id target = nil;
+
+    if (class_respondsToSelector(class, @selector(forwardingTargetForSelector:))) {
+        target = [self forwardingTargetForSelector: _cmd];
+    }
 
     if (target != nil && target != self)
     {
         // Short-circuit machinery was requested. Bail out and restart with the
-        //  new target.
+        // new target.
         return target;
     }
     else
