@@ -304,4 +304,111 @@
     [self invoke];
 }
 
+- (NSString *) debugDescription
+{
+    CFMutableStringRef description = CFStringCreateMutable(NULL, 0);
+    CFStringAppend(description, (CFStringRef) [self description]);
+
+    for (NSInteger index = -1; index < (NSInteger) [_signature numberOfArguments]; index++)
+    {
+        CFStringAppend(description, @"\n");
+
+        switch (index)
+        {
+        case -1:
+            CFStringAppend(description, @"return value");
+            break;
+        case 0:
+            CFStringAppend(description, @"target");
+            break;
+        case 1:
+            CFStringAppend(description, @"selector");
+            break;
+        default:
+            CFStringAppendFormat(description, NULL, @"argument %ld", (long) index);
+            break;
+        }
+        CFStringAppend(description, @": ");
+
+        NSMethodType *argInfo = [_signature _argInfo: index + 1];
+        CFStringAppendFormat(description, NULL, @"{%s} ", argInfo->type);
+
+        char type = stripQualifiersAndComments(argInfo->type)[0];
+        switch (type)
+        {
+        case _C_VOID:
+            CFStringAppend(description, @"void");
+            break;
+        case _C_CLASS:
+            {
+                Class class;
+                [self getArgument: &class atIndex: index];
+                if (class == Nil)
+                {
+                    CFStringAppend(description, @"Nil");
+                }
+                else
+                {
+                    CFStringAppendFormat(description, NULL, @"%s", class_getName(class));
+                }
+                break;
+            }
+        case _C_SEL:
+            {
+                SEL selector;
+                [self getArgument: &selector atIndex: index];
+                if (!selector)
+                {
+                    CFStringAppend(description, @"null");
+                }
+                else
+                {
+                    CFStringAppendFormat(description, NULL, @"%s", sel_getName(selector));
+                }
+                break;
+            }
+
+#define HANDLE(_c_type, type, format) \
+        case _c_type: \
+            { \
+                type value; \
+                [self getArgument: &value atIndex: index]; \
+                CFStringAppendFormat(description, NULL, format, value); \
+                break; \
+            }
+
+        HANDLE(_C_CHR, char, @"%c");
+        HANDLE(_C_UCHR, unsigned char, @"%u");
+        HANDLE(_C_BOOL, _Bool, @"%d");
+        HANDLE(_C_SHT, short, @"%d");
+        HANDLE(_C_USHT, unsigned short, @"%u");
+        HANDLE(_C_INT, int, @"%d");
+        HANDLE(_C_UINT, unsigned int, @"%u");
+        HANDLE(_C_LNG, long, @"%ld");
+        HANDLE(_C_ULNG, unsigned long, @"%lu");
+        HANDLE(_C_LNG_LNG, long long, @"%lld");
+        HANDLE(_C_ULNG_LNG, unsigned long long, @"%llu");
+        HANDLE(_C_FLT, float, @"%f");
+        HANDLE(_C_DBL, double, @"%f");
+        HANDLE(_C_CHARPTR, const char *, @"%s");
+        HANDLE(_C_ID, id, @"%p");
+        HANDLE(_C_PTR, void *, @"%p");
+
+#undef HANDLE
+
+        default:
+            {
+                const void *ptr = [self _idxToArg: index + 1];
+                CFDataRef data = CFDataCreateWithBytesNoCopy(NULL, ptr, argInfo->size, kCFAllocatorNull);
+                CFStringAppend(description, (CFStringRef) [data description]);
+                CFRelease(data);
+                break;
+            }
+        }
+    }
+
+    CFAutorelease(description);
+    return description;
+}
+
 @end
