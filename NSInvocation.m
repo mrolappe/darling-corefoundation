@@ -19,11 +19,6 @@
 #import <objc/runtime.h>
 #import <dispatch/dispatch.h>
 
-@interface NSMethodSignature (Internal)
-- (NSMethodType *)_argInfo:(int)index;
-- (BOOL)_stret;
-@end
-
 
 @implementation NSInvocation
 

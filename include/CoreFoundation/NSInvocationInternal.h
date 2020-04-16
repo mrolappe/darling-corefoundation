@@ -8,3 +8,9 @@ void __invoke__(void *send, void *retdata, marg_list args, size_t len, const cha
 
 extern void _CF_forwarding_prep_0();
 extern void _CF_forwarding_prep_1();
+
+
+@interface NSInvocation (Internal)
+- (void **) _idxToArg: (NSUInteger) idx;
+- (void) _addAttachedObject: (id) object;
+@end
