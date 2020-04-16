@@ -28,6 +28,7 @@
 
     _count = 0;
     _frameLength = 0;
+    _typeString = CFStringCreateMutable(NULL, strlen(types));
     // strlen(types) is a safe overapproximation to the actual number of types.
     _types = calloc(sizeof(NSMethodType), strlen(types));
 
@@ -53,6 +54,8 @@
             return nil;
         }
         strncpy(ms->type, currentType, nextType - currentType);
+        extern void __CFStringAppendBytes(CFMutableStringRef, const char *, CFIndex, CFStringEncoding);
+        __CFStringAppendBytes(_typeString, currentType, nextType - currentType, kCFStringEncodingUTF8);
 
         // Skip advisory size
         strtol(nextType, (char **)&nextType, 10);
@@ -129,6 +132,7 @@
         free(_types);
     }
 
+    CFRelease(_typeString);
     [super dealloc];
 }
 
@@ -170,6 +174,11 @@
 - (BOOL)_stret
 {
     return _stret;
+}
+
+- (CFStringRef) _typeString
+{
+    return _typeString;
 }
 
 @end
