@@ -41,7 +41,18 @@
     const char *currentType = types;
     const char *nextType = types;
 
-    while(strlen(nextType) > 0)
+#ifdef __LP64__
+    // On x86-64, the first few arguments are passed in registers as long as
+    // they satisfy certain conditions. __CF_forwarding_prep and __invoke__
+    // pack and unpack all register values into a 0xce-sized block preceeding
+    // the actual stack frame contents. This means frameLength always starts
+    // at 0xce and grows from there if there are any on-stack arguments.
+    unsigned short usedGPRegisters = 0;
+    unsigned short usedSSERegisters = 0;
+    _frameLength = 0xe0;
+#endif
+
+    while (nextType[0])
     {
         NSMethodType *ms = &_types[_count];
 
@@ -89,9 +100,33 @@
         {
 #if __arm__
             _frameLength = ALIGN_TO(_frameLength, frameAlignment);
-#endif
+#elif __LP64__
+            // FIXME: This is far from being a complete implementation of
+            // the x86-64 calling convention.
+            BOOL isFP = currentType[0] == _C_FLT || currentType[0] == _C_DBL;
+            if (isFP) {
+                unsigned short registersNeeded = ALIGN_TO(frameSize, 16) / 16;
+                if (usedSSERegisters + registersNeeded > 8) {
+                    _types[_count].offset = _frameLength;
+                    _frameLength += frameSize;
+                } else {
+                    _types[_count].offset = 0x30 + usedSSERegisters * 16;
+                    usedSSERegisters += registersNeeded;
+                }
+            } else {
+                unsigned short registersNeeded = ALIGN_TO(frameSize, 8) / 8;
+                if (usedGPRegisters + registersNeeded > 6 || frameSize > 16) {
+                    _types[_count].offset = _frameLength;
+                    _frameLength += frameSize;
+                } else {
+                    _types[_count].offset = usedGPRegisters * 8;
+                    usedGPRegisters += registersNeeded;
+                }
+            }
+#else
             _types[_count].offset = _frameLength;
             _frameLength += frameSize;
+#endif
         }
 
         _count++;
