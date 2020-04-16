@@ -45,7 +45,7 @@ struct objc_sendv_margs {
     uintptr_t stackArgs[];
 };
 
-id __forwarding___(struct objc_sendv_margs *args, void *returnStorage)
+id ___forwarding___(struct objc_sendv_margs *args, void *returnStorage)
 {
     id self = (id)args->a[0];
     SEL _cmd = (SEL)args->a[1];
