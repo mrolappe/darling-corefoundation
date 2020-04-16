@@ -99,7 +99,7 @@ LStretContinue:
 
 .text
 .global  __CF_forwarding_prep_0
-.align   2, 0x90
+.align   4, 0x90
 
 __CF_forwarding_prep_0:
     // All arguments are stack-based on i386
@@ -177,15 +177,20 @@ LStretSuccess:
 
 #elif __x86_64__
 
-.text
+.section __TEXT,__text,regular,pure_instructions
 .globl __CF_forwarding_prep_0
 .globl __CF_forwarding_prep_1
-.align 2, 0x90
+.align 4, 0x90
 
 __CF_forwarding_prep_0:
 __CF_forwarding_prep_1:
+    .cfi_startproc
+    .cfi_personality 155, ___objc_personality_v0
     push %rbp
+    .cfi_def_cfa_offset 16
+    .cfi_offset %rbp, -16
     movq %rsp, %rbp
+    .cfi_def_cfa_register rbp
 
     // Copy args from regs into a stack var
     subq   $0xe0, %rsp
@@ -216,14 +221,15 @@ __CF_forwarding_prep_1:
     // now, load the return value from the on-stack storage
     // and jump back to our caller
 
+    // here's how we get the return values (see NSInvoke-x86.S)
     movq   0xc0(%rsp), %rax
     movq   0xc8(%rsp), %rdx
-    // to handle returning floats, read the same memory into FP registers too
-    movapd 0xc0(%rsp), %xmm0
-    movapd 0xd0(%rsp), %xmm1
+    movapd 0xd0(%rsp), %xmm0
+    movapd 0xe0(%rsp), %xmm1
 
     movq   %rbp, %rsp
     pop    %rbp
+    // .cfi_def_cfa rsp, 8
     ret
 
 Lfail:
@@ -247,8 +253,12 @@ Lfail:
 
     movq   %rbp, %rsp
     pop    %rbp
-    
+    // .cfi_def_cfa rsp, 8
+
     jmp    _objc_msgSend // restart message send
+
+    .cfi_endproc
+
 #else
 #error Missing forwarding prep handlers for this arch https://code.google.com/p/apportable/issues/detail?id=619
 #endif

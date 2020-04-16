@@ -1,6 +1,6 @@
 
 .text
-.align 2, 0x90
+.align 4, 0x90
 .globl ___invoke__
 ___invoke__:
 
@@ -83,16 +83,24 @@ Ldone:
 
 #else // Now the x86-64 version
 
+  .cfi_startproc
+  .cfi_personality 155, ___objc_personality_v0
   push %rbp # Prologue
+  .cfi_def_cfa_offset 16
+  .cfi_offset %rbp, -16
   movq %rsp, %rbp
+  .cfi_def_cfa_register rbp
   push %rdi
+  .cfi_offset %rdi, -24
   push %rsi
+  .cfi_offset %rsi, -32
   push %r8
+  .cfi_offset %r8, -40
   movq %rdx, %rsi
 
   subq %rcx, %rsp # Push the stack down
   andq $-16, %rsp  #and align
-  
+
   # Shift stack contents (frame_length/8) times,
   # 8 bytes at a time
   # TODO: More efficient than the Lpush loop
@@ -143,7 +151,9 @@ Llongdoubleret:
 Ldone:
   movq %rbp, %rsp # Epilogue
   pop %rbp
+  // .cfi_def_cfa rsp, 8
   ret
+  .cfi_endproc
 #endif
 
 
