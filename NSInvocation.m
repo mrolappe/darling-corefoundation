@@ -290,19 +290,21 @@
         cls = class_getSuperclass(cls);
     }
 
+    char rettype = [_signature methodReturnType][0];
+
     if (blockClass)
     {
         struct Block_layout *block_layout = (struct Block_layout *)target;
-        __invoke__(block_layout->invoke, _retdata, _frame, [_signature frameLength], [_signature methodReturnType]);
+        __invoke__(block_layout->invoke, _retdata, _frame, [_signature frameLength], rettype);
     }
     else if ([_signature _stret])
     {
         char dummy[RET_SIZE_ARGS];
-        __invoke__(&objc_msgSend_stret, &dummy, _frame, [_signature frameLength], [_signature methodReturnType]);
+        __invoke__(&objc_msgSend_stret, &dummy, _frame, [_signature frameLength], rettype);
     }
     else
     {
-        __invoke__(&objc_msgSend, _retdata, _frame, [_signature frameLength], [_signature methodReturnType]);
+        __invoke__(&objc_msgSend, _retdata, _frame, [_signature frameLength], rettype);
     }
 
     if (_retainedArgs)

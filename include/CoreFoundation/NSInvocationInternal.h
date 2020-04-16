@@ -4,7 +4,7 @@
 // into retdata when returning from an invocation.
 #define RET_SIZE_ARGS (4 * sizeof(int))
 
-void __invoke__(void *send, void *retdata, marg_list args, size_t len, const char *rettype);
+void __invoke__(void *send, void *retdata, marg_list args, size_t len, char rettype);
 
 extern void _CF_forwarding_prep_0();
 extern void _CF_forwarding_prep_1();
