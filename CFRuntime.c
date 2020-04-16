@@ -1697,7 +1697,11 @@ static void _CFRelease(CFTypeRef cf) {
 	}
 
 	{
-	    Boolean isValidObjCObject = ((CFRuntimeBase *) cf)->_cfisa != 0;
+	    Boolean isValidObjCObject = false;
+	    if (((CFRuntimeBase *) cf)->_cfisa) {
+	        Class class = object_getClass(cf);
+	        isValidObjCObject = !_class_isFutureClass(class);
+	    }
 	    if (isValidObjCObject) {
 	        if (__CFZombieEnabled) {
 	            [(id)cf dealloc];
