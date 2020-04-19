@@ -193,6 +193,12 @@ CF_EXTERN_C_BEGIN
 #define CF_ASSUME_NONNULL_BEGIN
 #define CF_ASSUME_NONNULL_END
 
+#if __has_attribute(swift_name)
+#define CF_SWIFT_NAME(_name) __attribute__((swift_name(#_name)))
+#else
+#define CF_SWIFT_NAME(_name)
+#endif
+
 #if __has_attribute(noescape)
 #define CF_NOESCAPE __attribute__((noescape))
 #else
