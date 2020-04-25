@@ -183,7 +183,12 @@ CF_PRIVATE
     static CFDateFormatterRef formatter = NULL;
     static dispatch_once_t once = 0L;
     CFDateFormatterRef effectiveFormatter = NULL;
-    CFLocaleRef effectiveLocale = (CFLocaleRef)locale;
+    CFLocaleRef effectiveLocale = NULL;
+
+    if (locale && CFGetTypeID(locale) == CFLocaleGetTypeID())
+    {
+        effectiveLocale = (CFLocaleRef)locale;
+    }
 
     if (effectiveLocale == NULL)
     {
