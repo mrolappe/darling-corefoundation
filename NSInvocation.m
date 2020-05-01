@@ -245,16 +245,8 @@
     }
 }
 
-- (void)invoke
+static BOOL isBlock(id object)
 {
-    id target = nil;
-    [self getArgument:&target atIndex:0];
-
-    if (target == nil)
-    {
-        return;
-    }
-
     static Class NSBlockClass = Nil;
     static dispatch_once_t once = 0L;
     dispatch_once(&once, ^{
@@ -262,33 +254,38 @@
         NSBlockClass = class_getSuperclass(class_getSuperclass(object_getClass(^{})));
     });
 
-    BOOL blockClass = NO;
-    Class cls = object_getClass(target);
-
-    while (cls != Nil)
+    for (
+        Class class = object_getClass(object);
+        class != Nil;
+        class = class_getSuperclass(class)
+    )
     {
-        if (cls == NSBlockClass)
+        if (class == NSBlockClass)
         {
-            blockClass = YES;
+            return YES;
         }
-        cls = class_getSuperclass(cls);
+    }
+
+    return NO;
+}
+
+- (void) _invokeUsingIMP: (IMP) imp withFrame: (void *) frame
+{
+    if ([self target] == nil)
+    {
+        return;
     }
 
     char rettype = [_signature methodReturnType][0];
 
-    if (blockClass)
-    {
-        struct Block_layout *block_layout = (struct Block_layout *)target;
-        __invoke__(block_layout->invoke, _retdata, _frame, [_signature frameLength], rettype);
-    }
-    else if ([_signature _stret])
+    if ([_signature _stret])
     {
         char dummy[RET_SIZE_ARGS];
-        __invoke__(&objc_msgSend_stret, &dummy, _frame, [_signature frameLength], rettype);
+        __invoke__(imp, &dummy, frame, [_signature frameLength], rettype);
     }
     else
     {
-        __invoke__(&objc_msgSend, _retdata, _frame, [_signature frameLength], rettype);
+        __invoke__(imp, _retdata, frame, [_signature frameLength], rettype);
     }
 
     if (_retainedArgs)
@@ -298,10 +295,71 @@
     }
 }
 
-- (void)invokeWithTarget:(id)target
+- (void) invokeUsingIMP: (IMP) imp
 {
-    [self setTarget:target];
+    [self _invokeUsingIMP: imp withFrame: _frame];
+}
+
+- (void)invoke
+{
+    id target = [self target];
+    if (target == nil)
+    {
+        return;
+    }
+
+    IMP imp;
+
+    if (isBlock([self target]))
+    {
+        struct Block_layout *block_layout = (struct Block_layout *) target;
+        imp = block_layout->invoke;
+    }
+    else if ([_signature _stret])
+    {
+        imp = &objc_msgSend_stret;
+    }
+    else
+    {
+        imp = &objc_msgSend;
+    }
+
+    [self invokeUsingIMP: imp];
+}
+
+- (void) invokeWithTarget: (id) target
+{
+    [self setTarget: target];
     [self invoke];
+}
+
+- (void) invokeSuper
+{
+    id target = [self target];
+    if (target == nil)
+    {
+        return;
+    }
+
+    unsigned char *frameCopy = malloc([_signature frameLength]);
+    memcpy(frameCopy, _frame, [_signature frameLength]);
+
+    struct objc_super super = {
+        .receiver = target,
+#ifdef __OBJC2__
+        .super_class
+#else
+        .class
+#endif
+            = class_getSuperclass([target class])
+    };
+    NSMethodType *argType = [_signature _argInfo: 1];
+    *(struct objc_super **) (frameCopy + argType->offset) = &super;
+
+    IMP imp = [_signature _stret] ? &objc_msgSendSuper_stret : &objc_msgSendSuper;
+    [self _invokeUsingIMP: imp withFrame: frameCopy];
+
+    free(frameCopy);
 }
 
 - (NSString *) debugDescription

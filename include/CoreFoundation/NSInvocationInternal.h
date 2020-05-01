@@ -14,6 +14,8 @@ extern void _CF_forwarding_prep_1();
 
 
 @interface NSInvocation (Internal)
+- (void) invokeSuper;
+- (void) invokeUsingIMP: (IMP) imp;
 - (void **) _idxToArg: (NSUInteger) idx;
 - (void) _addAttachedObject: (id) object;
 @end
