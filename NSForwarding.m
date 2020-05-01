@@ -103,42 +103,6 @@ id ___forwarding___(struct objc_sendv_margs *args, void *returnStorage)
 
     NSInvocation *inv = [NSInvocation invocationWithMethodSignature:signature];
     const char *returnType = [signature methodReturnType];
-    [inv setTarget:target];
-    [inv setSelector:_cmd];
-    void *arguments = &args->a[2];
-    NSUInteger retSize = 0;
-    NSUInteger retAlign = 0;
-    NSGetSizeAndAlignment(returnType, &retSize, &retAlign);
-
-    switch (*returnType)
-    {
-        case _C_ID:
-        case _C_CLASS:
-        case _C_SEL:
-        case _C_BOOL:
-        case _C_CHR:
-        case _C_UCHR:
-        case _C_SHT:
-        case _C_USHT:
-        case _C_INT:
-        case _C_UINT:
-        case _C_LNG:
-        case _C_ULNG:
-        case _C_LNG_LNG:
-        case _C_ULNG_LNG:
-        case _C_PTR:
-        case _C_CHARPTR:
-        case _C_VOID:
-        case _C_FLT:
-        case _C_DBL:
-            break;
-        default:
-//            if (retSize > sizeof(void *))
-//            {
-//                arguments += sizeof(void *);     // account for stret
-//            }
-            break;
-    }
 
     NSUInteger signatureVerification = 2;
     const char *selName = sel_getName(_cmd);
@@ -158,23 +122,10 @@ id ___forwarding___(struct objc_sendv_margs *args, void *returnStorage)
         // __NSForwardSignatureError();
     }
 
-    for (NSUInteger i = 2; i < MIN(signatureVerification, signatureArgumentCount); i++)
+    for (NSUInteger i = 0; i < MIN(signatureVerification, signatureArgumentCount); i++)
     {
-        const char *type = [signature getArgumentTypeAtIndex:i];
-        NSUInteger size = 0;
-        NSUInteger align = 0;
-        NSGetSizeAndAlignment(type, &size, &align);
-
-        // alignment doesn't happen on x86
-#if __arm__
-        if (align)
-        {
-            arguments = (void *)ALIGN_TO((uintptr_t)arguments, align);
-        }
-#endif
-
-        [inv setArgument:arguments atIndex:i];
-        arguments += ALIGN_TO(size, sizeof(void *));
+        void *arg = ((const unsigned char *) args->a) + [signature _argInfo: i + 1]->offset;
+        [inv setArgument: arg atIndex: i];
     }
 
     [target forwardInvocation:inv];
