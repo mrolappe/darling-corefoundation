@@ -193,7 +193,7 @@ __CF_forwarding_prep_1:
     .cfi_def_cfa_register rbp
 
     // Copy args from regs into a stack var
-    subq   $0xe0, %rsp
+    subq   $0xd0, %rsp
     movq   %rax, 0xb0(%rsp)
     movapd %xmm7, 0xa0(%rsp)
     movapd %xmm6, 0x90(%rsp)

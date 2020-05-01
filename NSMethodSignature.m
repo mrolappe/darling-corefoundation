@@ -44,9 +44,9 @@
 #ifdef __LP64__
     // On x86-64, the first few arguments are passed in registers as long as
     // they satisfy certain conditions. __CF_forwarding_prep and __invoke__
-    // pack and unpack all register values into a 0xce-sized block preceeding
+    // pack and unpack all register values into a 0xe0-sized block preceeding
     // the actual stack frame contents. This means frameLength always starts
-    // at 0xce and grows from there if there are any on-stack arguments.
+    // at 0xe0 and grows from there if there are any on-stack arguments.
     unsigned short usedGPRegisters = 0;
     unsigned short usedSSERegisters = 0;
     _frameLength = 0xe0;
