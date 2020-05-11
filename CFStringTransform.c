@@ -7,7 +7,8 @@
 
 #include "CFString.h"
 #include <unicode/utrans.h>
-#include "debug.h"
+#include <dispatch/dispatch.h>
+#include <stdio.h>
 
 #define BUFFER_SIZE 256
 
@@ -70,7 +71,7 @@ static void _CFStringTransformCopy(UReplaceable *rep, int32_t start, int32_t lim
         text = malloc(limit - start);
         if (text == NULL) {
             // we cant throw a NSException here, but return before anything blows up...
-            DEBUG_LOG("ICU Internal failure occurred, we are out of memory: time to go cry in a corner now...");
+            fprintf(stderr, "ICU Internal failure occurred, we are out of memory: time to go cry in a corner now...\n");
             return;
         }
     }
@@ -91,13 +92,13 @@ static inline UTransliterator *utrans_find(CFStringRef transform, UTransDirectio
     do {
         uenum = utrans_openIDs(error);
         if (U_FAILURE(*error)) {
-            DEBUG_LOG("%s", u_errorName(*error));
+            fprintf(stderr, "%s\n", u_errorName(*error));
             break;
         }
 
         int32_t count = uenum_count(uenum, error);
         if (U_FAILURE(*error)) {
-            DEBUG_LOG("%s", u_errorName(*error));
+            fprintf(stderr, "%s\n", u_errorName(*error));
             break;
         }
         int32_t trans_idx = 0;
@@ -105,7 +106,7 @@ static inline UTransliterator *utrans_find(CFStringRef transform, UTransDirectio
             int32_t idLen = 0;
             const UChar *uid = uenum_unext(uenum, &idLen, error);
             if (U_FAILURE(*error)) {
-                DEBUG_LOG("%s", u_errorName(*error));
+                fprintf(stderr, "%s\n", u_errorName(*error));
                 break;
             }
             // this seems rather unlikely since we should have already broken
@@ -157,7 +158,7 @@ static inline UTransliterator *utrans_find(CFStringRef transform, UTransDirectio
                           CFEqual(transform, kCFStringTransformStripDiacritics))) {
         static dispatch_once_t once = 0L;
         dispatch_once(&once, ^{
-            RELEASE_LOG("Unable to find transliterators in icu data: likely this is from not including the Transliterators section in building your icu.dat file");
+            fprintf(stderr, "Unable to find transliterators in icu data: likely this is from not including the Transliterators section in building your icu.dat file");
         });
     }
 

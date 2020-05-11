@@ -87,6 +87,7 @@ set(cf_c_sources
 	CFStringEncodings.c
 	CFStringScanner.c
 	CFStringTokenizer.c
+	CFStringTransform.c
 	CFStringUtilities.c
 	CFSystemDirectories.c
 	CFTimeZone.c
