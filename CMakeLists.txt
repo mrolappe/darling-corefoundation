@@ -10,7 +10,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fblocks -fconstant-cfstrings -fexceptions \
 
 include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/src/external/foundation/src
 )
 
 add_definitions(-DCF_BUILDING_CF
