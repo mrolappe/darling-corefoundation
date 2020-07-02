@@ -315,7 +315,7 @@ static BOOL isBlock(id object)
         struct Block_layout *block_layout = (struct Block_layout *) target;
         imp = block_layout->invoke;
     }
-    #if defined(__x86_64__) || defined(__i386__) || defined(__arm__)
+    #if !defined(__arm64__)
         else if ([_signature _stret])
         {
             imp = &objc_msgSend_stret;
@@ -358,7 +358,7 @@ static BOOL isBlock(id object)
     NSMethodType *argType = [_signature _argInfo: 1];
     *(struct objc_super **) (frameCopy + argType->offset) = &super;
 
-    #if defined(__x86_64__) || defined(__i386__) || defined(__arm__)
+    #if !defined(__arm64__)
         IMP imp = [_signature _stret] ? &objc_msgSendSuper_stret : &objc_msgSendSuper;
     #else
         IMP imp = &objc_msgSendSuper;
