@@ -605,6 +605,9 @@ void CFRelease(CFTypeRef cf);
 CF_EXPORT
 CFTypeRef CFAutorelease(CFTypeRef CF_RELEASES_ARGUMENT arg) CF_AVAILABLE(10_9, 7_0);
 
+// needed for IOKit
+#define CFRELEASE_IF_NOT_NULL(x) if (x) CFRelease(x)
+
 CF_EXPORT
 CFIndex CFGetRetainCount(CFTypeRef cf);
 
