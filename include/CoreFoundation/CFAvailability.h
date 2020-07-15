@@ -87,6 +87,8 @@
 #define __NSi_10_12 introduced=10.12
 #define __NSi_10_12_1 introduced=10.12.1
 #define __NSi_10_13 introduced=10.13
+#define __NSi_10_14 introduced=10.14
+#define __NSi_10_15 introduced=10.15
 
 #define __NSd_2_0 ,deprecated=2.0
 #define __NSd_2_1 ,deprecated=2.1
@@ -124,6 +126,9 @@
 #define __NSd_10_11 ,deprecated=10.11
 #define __NSd_10_12 ,deprecated=10.12
 #define __NSd_10_12_1 ,deprecated=10.12.1
+#define __NSd_10_13 ,deprecated=10.13
+#define __NSd_10_14 ,deprecated=10.14
+#define __NSd_10_15 ,deprecated=10.15
 
 #define __NSi_NA unavailable
 #define __NSd_NA
@@ -206,6 +211,7 @@
 #if (__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && __has_feature(objc_fixed_enum))
 #define __CF_NAMED_ENUM(_type, _name)     enum _name : _type _name; enum _name : _type
 #define __CF_ANON_ENUM(_type)             enum : _type
+#define CF_CLOSED_ENUM(_type, _name)      enum _name : _type _name; enum _name : _type
 #if (__cplusplus)
 #define CF_OPTIONS(_type, _name) _type _name; enum : _type
 #else
@@ -214,6 +220,7 @@
 #else
 #define __CF_NAMED_ENUM(_type, _name) _type _name; enum
 #define __CF_ANON_ENUM(_type) enum
+#define CF_CLOSED_ENUM(_type, _name)  _type _name; enum
 #define CF_OPTIONS(_type, _name) _type _name; enum
 #endif
 
