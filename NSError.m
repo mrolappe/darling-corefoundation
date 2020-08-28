@@ -6,6 +6,7 @@
 //
 
 #import <Foundation/NSError.h>
+#import <Foundation/NSError_Private.h>
 
 #import <Foundation/NSDictionary.h>
 #import "ForFoundationOnly.h"
@@ -155,6 +156,15 @@ static NSError *_outOfmemoryError = nil;
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
 
+}
+
+@end
+
+@implementation NSError (NSErrorPrivateStuff)
+
++ (void)_setFileNameLocalizationEnabled:(BOOL)enabled
+{
+    // silently ignore it
 }
 
 @end

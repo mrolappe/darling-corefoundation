@@ -394,6 +394,13 @@ CFArrayRef  CFPreferencesCopyKeyList(CFStringRef  appName, CFStringRef  user, CF
     }
 }
 
+Boolean CFPreferencesAppValueIsForced(CFStringRef key, CFStringRef applicationID) {
+    // kind of a stub but not really
+    // Darling doesn't have "forced" preferences
+    // (those would be preferences enforced by an administrator)
+    return false;
+};
+
 
 /****************************/
 /*  CFPreferencesDomain     */

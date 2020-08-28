@@ -138,6 +138,8 @@ all arguments must be non-NULL */
 CF_EXPORT
 CFArrayRef CFPreferencesCopyKeyList(CFStringRef applicationID, CFStringRef userName, CFStringRef hostName);
 
+CF_EXPORT
+Boolean CFPreferencesAppValueIsForced(CFStringRef key, CFStringRef applicationID);
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED
