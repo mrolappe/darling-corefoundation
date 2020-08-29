@@ -111,6 +111,7 @@ static struct __CFNotificationCenter *_CFNotificationCenterCreate(CFAllocatorRef
 
 static CFNotificationCenterRef localCenter = NULL;
 static CFNotificationCenterRef darwinCenter = NULL;
+static CFNotificationCenterRef distributedCenter = NULL;
 static OSSpinLock centerLock = OS_SPINLOCK_INIT;
 
 CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetLocalCenter(void) {
@@ -129,6 +130,14 @@ CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetDarwinNotifyCenter(void
     }
     OSSpinLockUnlock(&centerLock);
     return darwinCenter;
+}
+CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetDistributedCenter(void) {
+    OSSpinLockLock(&centerLock);
+    if (distributedCenter == NULL) {
+        distributedCenter = _CFNotificationCenterCreate(kCFAllocatorDefault);
+    }
+    OSSpinLockUnlock(&centerLock);
+    return distributedCenter;
 }
 
 CF_EXPORT void CFNotificationCenterAddObserver(CFNotificationCenterRef center, const void *observer, CFNotificationCallback callBack, CFStringRef name, const void *object, CFNotificationSuspensionBehavior suspensionBehavior) {

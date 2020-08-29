@@ -25,6 +25,7 @@ enum {
 CF_EXPORT CFTypeID CFNotificationCenterGetTypeID(void);
 CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetLocalCenter(void);
 CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetDarwinNotifyCenter(void);
+CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetDistributedCenter(void);
 CF_EXPORT void CFNotificationCenterAddObserver(CFNotificationCenterRef center, const void *observer, CFNotificationCallback callBack, CFStringRef name, const void *object, CFNotificationSuspensionBehavior suspensionBehavior);
 CF_EXPORT void CFNotificationCenterRemoveObserver(CFNotificationCenterRef center, const void *observer, CFStringRef name, const void *object);
 CF_EXPORT void CFNotificationCenterRemoveEveryObserver(CFNotificationCenterRef center, const void *observer);
