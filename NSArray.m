@@ -1725,6 +1725,16 @@ SINGLETON_RR()
     return [[[self alloc] initWithContentsOfURL:url] autorelease];
 }
 
+// like `dictionaryWithContentsOfURL:error:`, this is a quick and dirty implementation to satisfy users of the new variants (namely, trustd)
++ (instancetype)arrayWithContentsOfURL:(NSURL *)url error:(NSError**)error
+{
+    NSArray* tmp = [self arrayWithContentsOfURL:url];
+    if (tmp == nil) {
+        *error = [NSError errorWithDomain:@"NSArrayErrorDomain" code:-1 userInfo:nil];
+    }
+    return tmp;
+}
+
 - (instancetype)initWithObjects:(const id [])objects count:(NSUInteger)cnt
 {
     NSRequestConcreteImplementation();

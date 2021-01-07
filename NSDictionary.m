@@ -12,6 +12,7 @@
 #import <Foundation/NSArray.h>
 #import <Foundation/NSSet.h>
 #import <Foundation/NSURL.h>
+#include <Foundation/NSError.h>
 
 #import "CFInternal.h"
 #import "NSFastEnumerationEnumerator.h"
@@ -498,6 +499,17 @@ SINGLETON_RR()
     return [[[self alloc] initWithContentsOfURL:url] autorelease];
 }
 
++ (instancetype)dictionaryWithContentsOfURL:(NSURL *)url error:(NSError **)error
+{
+    // TODO: we should actually pass along any error we get to the user so they have more info
+    // this is just a quick and dirty implementation
+    NSDictionary* tmp = [self dictionaryWithContentsOfURL:url];
+    if (tmp == nil) {
+        *error = [NSError errorWithDomain:@"NSDictionaryErrorDomain" code:-1 userInfo:nil];
+    }
+    return tmp;
+}
+
 - (id)initWithObjectsAndKeys:(id)firstObject, ...
 {
     va_list args;
@@ -710,6 +722,15 @@ SINGLETON_RR()
     BOOL immutable = ![self isKindOfClass:[NSMutableDictionary class]];
     [self release];
     return [NSDictionary newWithContentsOf:url immutable:immutable];
+}
+
+- (id)initWithContentsOfURL:(NSURL *)url error:(NSError **)error
+{
+    NSDictionary* tmp = [self initWithContentsOfURL:url];
+    if (tmp == nil) {
+        *error = [NSError errorWithDomain:@"NSDictionaryErrorDomain" code:-1 userInfo:nil];
+    }
+    return tmp;
 }
 
 @end
