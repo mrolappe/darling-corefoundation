@@ -25,6 +25,7 @@ CF_PRIVATE
     id target;
     SEL selector;
     id userInfo;
+    void (^block)(NSTimer*);
 }
 @end
 
@@ -44,8 +45,21 @@ CF_PRIVATE
     return self;
 }
 
+- (id)initWithBlock:(void (^)(NSTimer*)) aBlock
+{
+    self = [super init];
+
+    if (self)
+    {
+        block = Block_copy(aBlock);
+    }
+
+    return self;
+}
+
 - (void)dealloc
 {
+    Block_release(block);
     [target release];
     [userInfo release];
     [super dealloc];
@@ -84,9 +98,16 @@ static void __NSFireTimer(__NSCFTimer *timer, _NSTimerInfo *info)
     @autoreleasepool
     {
         [timer retain];
-        [info->target retain];
-        [timer fire];
-        [info->target release];
+        if (info->block)
+        {
+            info->block(timer);
+        }
+        else
+        {
+            [info->target retain];
+            [timer fire];
+            [info->target release];
+        }
         [timer release];
     }
 }
@@ -106,7 +127,35 @@ static void __NSFireTimer(__NSCFTimer *timer, _NSTimerInfo *info)
     {
         ti = 0;
     }
-    else if (ti < 0.0)
+    else if (ti <= 0.0)
+    {
+        ti = 0.0001; // If [ti] is less than or equal to 0.0, this method chooses the nonnegative value of 0.1 milliseconds instead.
+    }
+
+    id timer = (id)CFRunLoopTimerCreate(kCFAllocatorDefault, [fireDate timeIntervalSinceReferenceDate], ti, 0, 0, (void (*)(CFRunLoopTimerRef, void *))&__NSFireTimer, &ctx);
+    [timerInfo release];
+    return timer;
+}
+
+- (instancetype)initWithFireDate:(NSDate *)fireDate 
+                        interval:(NSTimeInterval)ti 
+                         repeats:(BOOL)repeats 
+                           block:(void (^)(NSTimer *))block
+{
+    _NSTimerInfo *timerInfo = [[_NSTimerInfo alloc] initWithBlock:block];
+
+    CFRunLoopTimerContext ctx = {
+        .version = 0,
+        .info = timerInfo,
+        .retain = &_NSCFRetain,
+        .release = &_NSCFRelease,
+    };
+
+    if (repeats == NO)
+    {
+        ti = 0;
+    }
+    else if (ti <= 0.0)
     {
         ti = 0.0001; // If [ti] is less than or equal to 0.0, this method chooses the nonnegative value of 0.1 milliseconds instead.
     }
