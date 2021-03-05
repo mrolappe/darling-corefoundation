@@ -661,7 +661,7 @@ enum {
 void __CFRunLoopSetOptionsReason(int opts, CFStringRef reason);
 
 // i'm guessing this is related to Marzipan (Apple's name for UIKit on macOS)
-#define _CFMZEnabled() (0)
+int _CFMZEnabled(void);
 
 CF_EXTERN_C_END
 

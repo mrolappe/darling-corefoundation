@@ -1722,4 +1722,7 @@ static void _CFRelease(CFTypeRef cf) {
 #undef __kCFAllocatorTypeID_CONST
 #undef __CFGenericAssertIsCF
 
-
+// not sure where to put this, but this seems like as good a place as any
+int _CFMZEnabled() {
+	return 0;
+};
