@@ -20,6 +20,9 @@ SINGLETON_RR()
 
 - (BOOL)isKindOfClass:(Class)cls
 {
+    if ([super isKindOfClass: cls]) {
+        return YES;
+    }
     return cls == objc_lookUpClass("NSString");
 }
 

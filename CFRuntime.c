@@ -210,21 +210,6 @@ CF_PRIVATE uintptr_t __CFRuntimeObjCClassTable[__CFRuntimeClassTableSize] = {0};
 bool (*__CFObjCIsCollectable)(void *) = NULL;
 #endif
 
-#if !__CONSTANT_CFSTRINGS__ || DEPLOYMENT_TARGET_EMBEDDED_MINI
-// Compiler uses this symbol name; must match compiler built-in decl, so we use 'int'
-#if __LP64__
-int __CFConstantStringClassReference[24] = {0};
-#else
-int __CFConstantStringClassReference[12] = {0};
-#endif
-#endif
-
-#if __LP64__
-int __CFConstantStringClassReference[24] = {0};
-#else
-int __CFConstantStringClassReference[12] = {0};
-#endif
-
 void *__CFConstantStringClassReferencePtr = NULL;
 
 Boolean _CFIsObjC(CFTypeID typeID, void *obj) {
@@ -1015,7 +1000,7 @@ void __CFInitialize(void) {
 	    __NSRetainCounters[idx].lock = CFLockInit;
 	}
 
-        memcpy(__CFConstantStringClassReference, (void *)objc_getClass("__NSCFConstantString"), sizeof(__CFConstantStringClassReference));
+        extern char __CFConstantStringClassReference;
         __CFConstantStringClassReferencePtr = &__CFConstantStringClassReference;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
