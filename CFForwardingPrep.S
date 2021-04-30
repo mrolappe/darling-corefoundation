@@ -95,6 +95,8 @@ LStretContinue:
     
 .fnend
 
+#error TODO: Implement __CF_forwarding_prep_b for ARM
+
 #elif __i386__
 
 .text
@@ -174,6 +176,28 @@ __CF_forwarding_prep_1:
     jmp _objc_msgSend_stret  // restart message send
 LStretSuccess:
     ret $4                  // return value in stret pointer; return
+
+.text
+.global  __CF_forwarding_prep_b
+.align   4, 0x90
+
+// NOTE: i have not checked this implemention (it's kind of hacked together based on the other two `forwarding_prep`s)
+//       i tried to test it, but blocks in general are broken on i386 at the moment (actually, the root issue is that setjmp is broken on i386)
+__CF_forwarding_prep_b:
+    push %ebp
+    mov %esp, %ebp               // create a stack frame
+
+    sub $0x04, %esp              // reserve space for args pointer
+    and $-16, %esp               // align stack
+
+    lea 8(%ebp), %eax            // load marg_list, skipping frame pointer and return address
+    mov %eax, (%esp)             // pass marg_list as first argument
+
+    call ___block_forwarding__   // call through
+
+    mov %ebp, %esp               // restore stack
+    pop %ebp                     // pop stack frame
+    ret                          // return
 
 #elif __x86_64__
 
@@ -256,6 +280,46 @@ Lfail:
     // .cfi_def_cfa rsp, 8
 
     jmp    _objc_msgSend // restart message send
+
+    .cfi_endproc
+
+.globl __CF_forwarding_prep_b
+.align 4, 0x90
+
+__CF_forwarding_prep_b:
+    .cfi_startproc
+    .cfi_personality 155, ___objc_personality_v0 // not sure if this personality is correct for this function
+    push %rbp
+    .cfi_def_cfa_offset 16
+    .cfi_offset %rbp, -16
+    movq %rsp, %rbp
+    .cfi_def_cfa_register rbp
+
+    // Copy args from regs into a stack var
+    subq   $0xd0, %rsp
+    movq   %rax, 0xb0(%rsp)
+    movapd %xmm7, 0xa0(%rsp)
+    movapd %xmm6, 0x90(%rsp)
+    movapd %xmm5, 0x80(%rsp)
+    movapd %xmm4, 0x70(%rsp)
+    movapd %xmm3, 0x60(%rsp)
+    movapd %xmm2, 0x50(%rsp)
+    movapd %xmm1, 0x40(%rsp)
+    movapd %xmm0, 0x30(%rsp)
+    movq   %r9, 0x28(%rsp)
+    movq   %r8, 0x20(%rsp)
+    movq   %rcx, 0x18(%rsp)
+    movq   %rdx, 0x10(%rsp)
+    movq   %rsi, 8(%rsp)
+    movq   %rdi, (%rsp)
+
+    // call into the actual forwarder
+    movq   %rsp, %rdi
+    call   ___block_forwarding__
+
+    movq   %rbp, %rsp
+    pop    %rbp
+    ret
 
     .cfi_endproc
 

@@ -56,8 +56,46 @@
     {
         NSMethodType *ms = &_types[_count];
 
+        if (nextType[0] == '>' && nextType[1] == '\0') {
+            // handle the case where we initialize the signature using the extended type description of a block parameter
+            // (this is so that we don't have to copy the string and null terminate it in `_signatureForBlockAtArgumentIndex:`)
+            break;
+        }
+
         currentType = nextType;
         nextType = NSGetSizeAndAlignment(currentType, &ms->size, &ms->alignment);
+
+        // we need to be able to handle extended type encodings.
+        // these don't affect the size or alignment of the type, but they are considered part of the type and we need to store them
+        if (nextType[0] == '"') {
+            // this describes what kind of object the argument expects.
+            // this case is simple; no nesting possible
+            nextType = strchr(nextType + 1, '"');
+            if (!nextType) {
+                // no closing quotation mark? invalid type encoding.
+                [NSException raise: NSInvalidArgumentException format: @"Invalid type encoding: expected closing quotation mark"];
+            }
+            ++nextType; // skip the closing quotation mark
+        } else if (nextType[0] == '<') {
+            // this describes the block signature.
+            // this case is little more complicated; nesting is possible
+            size_t nestLevel = 1;
+            ++nextType;
+            for (; nestLevel > 0 && nextType[0] != '\0'; ++nextType) {
+                if (nextType[0] == '<') {
+                    ++nestLevel;
+                } else if (nextType[0] == '>') {
+                    --nestLevel;
+                }
+            }
+            if (nestLevel > 0) {
+                // still missing a closing angle bracket? invalid type encoding.
+                [NSException raise: NSInvalidArgumentException format: @"Invalid type encoding: expected closing angle bracket"];
+            }
+        }
+
+        // there might other extended type encodings i haven't encountered, but those two should be the two most important ones
+
         ms->type = calloc(nextType - currentType + 1, 1);
         if (UNLIKELY(ms->type == NULL))
         {
@@ -214,6 +252,16 @@
 - (CFStringRef) _typeString
 {
     return _typeString;
+}
+
+- (NSMethodSignature*)_signatureForBlockAtArgumentIndex: (NSUInteger)index
+{
+    const char* argType = [self getArgumentTypeAtIndex: index];
+    argType = strchr(argType, '<');
+    if (!argType) {
+        return nil;
+    }
+    return [NSMethodSignature signatureWithObjCTypes: argType + 1];
 }
 
 @end

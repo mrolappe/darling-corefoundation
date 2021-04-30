@@ -83,7 +83,7 @@
     [_container addObject: object];
 }
 
-- (instancetype)initWithMethodSignature:(NSMethodSignature *)sig
+- (instancetype)_initWithMethodSignature: (NSMethodSignature*)sig frame: (void*)frame
 {
     if (sig == nil)
     {
@@ -104,6 +104,10 @@
         _retdata = calloc(retSize + [_signature frameLength], 1);
         _frame = _retdata + retSize;
 
+        if (frame) {
+            memcpy(_frame, frame, [_signature frameLength]);
+        }
+
         if ([sig _stret])
         {
             // Set up the return value pointer for the objc_msgSend_stret call.
@@ -113,6 +117,11 @@
     }
 
     return self;
+}
+
+- (instancetype)initWithMethodSignature:(NSMethodSignature *)sig
+{
+    return [self _initWithMethodSignature: sig frame: NULL];
 }
 
 - (instancetype)init
@@ -127,6 +136,12 @@
     [_signature release];
     free(_retdata);
     [super dealloc];
+}
+
+
++ (instancetype)_invocationWithMethodSignature: (NSMethodSignature*)sig frame: (void*)frame
+{
+    return [[[self alloc] _initWithMethodSignature: sig frame: frame] autorelease];
 }
 
 + (instancetype)invocationWithMethodSignature:(NSMethodSignature *)sig
@@ -326,7 +341,7 @@ static BOOL isBlock(id object)
         imp = &objc_msgSend;
     }
 
-    [self invokeUsingIMP: imp];
+    [self _invokeUsingIMP: imp withFrame: _frame];
 }
 
 - (void) invokeWithTarget: (id) target

@@ -161,6 +161,7 @@ set(cf_sources
 	FoundationExceptions.m
 	NSRunLoopModes.m
 	NSFileSecurity.m
+	NSBlockInvocation.m
 )
 
 add_separated_framework(CoreFoundation

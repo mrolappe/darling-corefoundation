@@ -32,6 +32,8 @@ along with Darling.  If not, see <http://www.gnu.org/licenses/>.
 #import <objc/runtime.h>
 #import <stdio.h>
 
+#import "NSBlockInvocationInternal.h"
+
 #define ALIGN_TO(value, alignment) \
     (((value) % (alignment)) ? \
     ((value) + (alignment) - ((value) % (alignment))) : \
@@ -132,4 +134,27 @@ id ___forwarding___(struct objc_sendv_margs *args, void *returnStorage)
     [inv getReturnValue:returnStorage];
     return nil;
 }
+
+void __block_forwarding__(void* frame) {
+    id block = *(id**)frame;
+    Class class = object_getClass(block);
+    const char *className = class_getName(class);
+
+    if (strncmp(className, ZOMBIE_PREFIX, strlen(ZOMBIE_PREFIX)) == 0) {
+        CFLog(3, CFSTR("*** NSBlockInvocation: invocation of deallocated Block instance %p"), block);
+        __builtin_trap();
+    } else {
+        const char* rawSig = _Block_signature(block);
+
+        if (rawSig) {
+            NSMethodSignature* sig = [NSMethodSignature signatureWithObjCTypes: rawSig];
+            NSBlockInvocation* invocation = [NSBlockInvocation _invocationWithMethodSignature: sig frame: frame];
+            invocation.target = nil; // prevent the proxy from accidentally invoking us again
+            (((struct NSProxyBlock*)block)->proxy)(invocation);
+        } else {
+            CFLog(4, CFSTR("*** NSBlockInvocation: Block %p does not have a type signature -- abort"), block);
+            __builtin_trap();
+        }
+    }
+};
 
