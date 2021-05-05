@@ -990,7 +990,7 @@ static NSString *_getDescription(id obj, id locale, int level)
     }];
 }
 
-- (void)getObjects:(id __unsafe_unretained [])objects andKeys:(id __unsafe_unretained [])keys
+- (void)getObjects:(id __unsafe_unretained [])objects andKeys:(id __unsafe_unretained [])keys count:(NSUInteger)count
 {
     if (objects == NULL && keys == NULL)
     {
@@ -1003,6 +1003,10 @@ static NSString *_getDescription(id obj, id locale, int level)
     NSUInteger idx = 0;
     while (key = [enumerator nextObject])
     {
+        if (idx >= count) {
+            break;
+        }
+
         if (keys != NULL)
         {
             keys[idx] = key;
@@ -1015,6 +1019,11 @@ static NSString *_getDescription(id obj, id locale, int level)
 
         idx++;
     }
+}
+
+- (void)getObjects:(id __unsafe_unretained [])objects andKeys:(id __unsafe_unretained [])keys
+{
+    return [self getObjects: objects andKeys: keys count: [self count]];
 }
 
 - (id)objectForKeyedSubscript:(id)key
@@ -1277,6 +1286,26 @@ static NSString *_getDescription(id obj, id locale, int level)
     return CFDictionaryGetCount((CFDictionaryRef)self);
 }
 
+- (void)getObjects:(id [])objects andKeys:(id [])keys count:(NSUInteger)count
+{
+    // fastpath: if the provided buffers are large enough, just defer to CFDictionary
+    if (count >= self.count) {
+        return [self getObjects: objects andKeys: keys];
+    }
+
+    // otherwise, do it ourselves
+    NSUInteger index = 0;
+    for (id key in self) {
+        if (index >= count) {
+            break;
+        }
+
+        keys[index] = key;
+        objects[index] = [self objectForKey: key];
+        ++index;
+    }
+}
+
 - (void)getObjects:(id [])objects andKeys:(id [])keys
 {
     CFDictionaryGetKeysAndValues((CFDictionaryRef)self, (const void **)keys, (const void **)objects);
@@ -1438,16 +1467,20 @@ static NSString *_getDescription(id obj, id locale, int level)
     return idx;
 }
 
-
-- (void)getObjects:(id __unsafe_unretained [])objects andKeys:(id __unsafe_unretained [])keys
+- (void)getObjects:(id __unsafe_unretained [])objects andKeys:(id __unsafe_unretained [])keys count: (NSUInteger)count
 {
     id *keysAndObjects = (id *)object_getIndexedIvars(self);
 
-    for (NSUInteger idx = 0; idx < _used * 2; idx += 2)
+    for (NSUInteger idx = 0; idx < _used * 2 && idx < count * 2; idx += 2)
     {
         keys[idx] = keysAndObjects[idx];
         objects[idx] = keysAndObjects[idx + 1];
     }
+}
+
+- (void)getObjects:(id __unsafe_unretained [])objects andKeys:(id __unsafe_unretained [])keys
+{
+    return [self getObjects: objects andKeys: keys count: _used];
 }
 
 - (NSEnumerator *)keyEnumerator
