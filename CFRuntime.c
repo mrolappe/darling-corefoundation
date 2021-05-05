@@ -964,6 +964,10 @@ void __CFInitialize(void) {
         memset(__CFRuntimeClassTable, 0, sizeof(__CFRuntimeClassTable));
         memset(__CFRuntimeObjCClassTable, 0, sizeof(__CFRuntimeObjCClassTable));
 
+        _CFRuntimeBridgeClasses(0, "__NSCFType");
+        for (CFIndex idx = 1; idx < __CFRuntimeClassTableSize; ++idx) {
+            __CFRuntimeObjCClassTable[idx] = __CFRuntimeObjCClassTable[0];
+        }
 
         /* Here so that two runtime classes get indices 0, 1. */
         __kCFNotATypeTypeID = _CFRuntimeRegisterClass(&__CFNotATypeClass);
