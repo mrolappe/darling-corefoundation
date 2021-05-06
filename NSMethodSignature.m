@@ -256,12 +256,22 @@
 
 - (NSMethodSignature*)_signatureForBlockAtArgumentIndex: (NSUInteger)index
 {
-    const char* argType = [self getArgumentTypeAtIndex: index];
+    const char* argType = _types[index].type;
     argType = strchr(argType, '<');
     if (!argType) {
         return nil;
     }
     return [NSMethodSignature signatureWithObjCTypes: argType + 1];
+}
+
+- (Class)_classForObjectAtArgumentIndex: (NSUInteger)index
+{
+    const char* argType = _types[index].type;
+    argType = strchr(argType, '"');
+    if (!argType) {
+        return nil;
+    }
+    return objc_getClass(argType + 1);
 }
 
 @end
