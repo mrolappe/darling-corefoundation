@@ -15,6 +15,8 @@
 (value) \
 )
 
+extern void __CFStringAppendBytes(CFMutableStringRef, const char *, CFIndex, CFStringEncoding);
+
 @implementation NSMethodSignature
 
 - (instancetype)initWithObjCTypes:(const char *)types
@@ -65,6 +67,9 @@
         currentType = nextType;
         nextType = NSGetSizeAndAlignment(currentType, &ms->size, &ms->alignment);
 
+        // append the type info WITHOUT the extended type info
+        __CFStringAppendBytes(_typeString, currentType, nextType - currentType, kCFStringEncodingUTF8);
+
         // we need to be able to handle extended type encodings.
         // these don't affect the size or alignment of the type, but they are considered part of the type and we need to store them
         if (nextType[0] == '"') {
@@ -103,11 +108,16 @@
             return nil;
         }
         strncpy(ms->type, currentType, nextType - currentType);
-        extern void __CFStringAppendBytes(CFMutableStringRef, const char *, CFIndex, CFStringEncoding);
-        __CFStringAppendBytes(_typeString, currentType, nextType - currentType, kCFStringEncodingUTF8);
 
         // Skip advisory size
+        // (but record the size start offset so we can append into the type string)
+        const char* sizeStart = nextType;
         strtol(nextType, (char **)&nextType, 10);
+
+        // append the size info
+        if (nextType - sizeStart > 0) {
+            __CFStringAppendBytes(_typeString, sizeStart, nextType - sizeStart, kCFStringEncodingUTF8);
+        }
 
         NSUInteger frameAlignment = MAX(ms->alignment, sizeof(int));
         NSUInteger frameSize = ALIGN_TO(ms->size, frameAlignment);
