@@ -1006,20 +1006,6 @@ void __CFInitialize(void) {
 
         extern char __CFConstantStringClassReference;
         __CFConstantStringClassReferencePtr = &__CFConstantStringClassReference;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-
-        if (objc_getClass("NSNumber") != NULL)
-        {
-            class_setSuperclass(objc_getClass("__NSCFNumber"), objc_getClass("NSNumber"));
-            class_setSuperclass(objc_getClass("__NSCFCharacterSet"), objc_getClass("NSMutableCharacterSet"));
-            class_setSuperclass(objc_getClass("__NSCFBoolean"), objc_getClass("NSNumber"));
-            class_setSuperclass(objc_getClass("__NSCFError"), objc_getClass("NSError"));
-            class_setSuperclass(objc_getClass("__NSCFString"), objc_getClass("NSMutableString"));
-            class_setSuperclass(objc_getClass("__NSCFAttributedString"), objc_getClass("NSMutableAttributedString"));
-        }
-
-#pragma clang diagnostic pop
 
         /*** _CFRuntimeCreateInstance() can finally be called generally after this line. ***/
         __CFRuntimeClassTableCount = 7;
