@@ -384,3 +384,19 @@ SINGLETON_RR()
 }
 
 @end
+
+CFDateRef CFDateCreate(CFAllocatorRef allocator, CFAbsoluteTime at) {
+    return (CFDateRef)[[NSDate alloc] initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)at];
+}
+
+CFTimeInterval CFDateGetAbsoluteTime(CFDateRef date) {
+    return (CFTimeInterval)[(NSDate *)date timeIntervalSinceReferenceDate];
+}
+
+CFTimeInterval CFDateGetTimeIntervalSinceDate(CFDateRef date, CFDateRef otherDate) {
+    return (CFTimeInterval)[(NSDate *)date timeIntervalSinceDate: (NSDate *)otherDate];
+}
+
+CFComparisonResult CFDateCompare(CFDateRef date, CFDateRef otherDate, void *context) {
+    return (CFComparisonResult)[(NSDate *)date compare: (NSDate *)otherDate];
+}

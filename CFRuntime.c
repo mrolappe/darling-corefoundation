@@ -1078,7 +1078,7 @@ void __CFInitialize(void) {
 #endif
         
         CFDateGetTypeID();
-        _CFRuntimeBridgeClasses(CFDateGetTypeID(), "__NSDate");
+        //_CFRuntimeBridgeClasses(CFDateGetTypeID(), "__NSDate");
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
         CFRunLoopGetTypeID();

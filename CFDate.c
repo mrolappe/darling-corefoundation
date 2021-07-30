@@ -139,6 +139,14 @@ CFTypeID CFDateGetTypeID(void) {
     dispatch_once(&initOnce, ^{
         __kCFDateTypeID = _CFRuntimeRegisterClass(&__CFDateClass); 
 
+        // HACK: this effectively reserves the type ID for the date class.
+        //       this ensures that date objects are treated like ObjC objects and not CF ones.
+        //       Apple's newer CF returns a static value for the CFDate type ID and never actually registers a CFDate class.
+        //       instead, they just use the ObjC class for everything.
+        if (__kCFDateTypeID != _kCFRuntimeNotATypeID) {
+            _CFRuntimeUnregisterClassWithTypeID(__kCFDateTypeID);
+        }
+
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     struct mach_timebase_info info;
     mach_timebase_info(&info);
@@ -163,40 +171,6 @@ CFTypeID CFDateGetTypeID(void) {
 #endif
     });
     return __kCFDateTypeID;
-}
-
-CFDateRef CFDateCreate(CFAllocatorRef allocator, CFAbsoluteTime at) {
-    CFDateRef memory; 
-    uint32_t size;
-    size = sizeof(struct __CFDate) - sizeof(CFRuntimeBase);
-    memory = (CFDateRef)_CFRuntimeCreateInstance(allocator, CFDateGetTypeID(), size, NULL);
-    if (NULL == memory) {
-        return NULL;
-    }
-    ((struct __CFDate *)memory)->_time = at;
-    return memory;
-}
-
-CFTimeInterval CFDateGetAbsoluteTime(CFDateRef date) {
-    CF_OBJC_FUNCDISPATCHV(CFDateGetTypeID(), CFTimeInterval, (NSDate *)date, timeIntervalSinceReferenceDate);
-    __CFGenericValidateType(date, CFDateGetTypeID());
-    return date->_time;
-}
-
-CFTimeInterval CFDateGetTimeIntervalSinceDate(CFDateRef date, CFDateRef otherDate) {
-    CF_OBJC_FUNCDISPATCHV(CFDateGetTypeID(), CFTimeInterval, (NSDate *)date, timeIntervalSinceDate:(NSDate *)otherDate);
-    __CFGenericValidateType(date, CFDateGetTypeID());
-    __CFGenericValidateType(otherDate, CFDateGetTypeID());
-    return date->_time - otherDate->_time;
-}   
-    
-CFComparisonResult CFDateCompare(CFDateRef date, CFDateRef otherDate, void *context) {
-    CF_OBJC_FUNCDISPATCHV(CFDateGetTypeID(), CFComparisonResult, (NSDate *)date, compare:(NSDate *)otherDate);
-    __CFGenericValidateType(date, CFDateGetTypeID());
-    __CFGenericValidateType(otherDate, CFDateGetTypeID());
-    if (date->_time < otherDate->_time) return kCFCompareLessThan;
-    if (date->_time > otherDate->_time) return kCFCompareGreaterThan;
-    return kCFCompareEqualTo;
 }
 
 #endif
