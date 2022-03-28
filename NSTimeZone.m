@@ -10,6 +10,8 @@
 #import <Foundation/NSCache.h>
 #import "CFInternal.h"
 
+const NSNotificationName NSSystemTimeZoneDidChangeNotification = @"NSSystemTimeZoneDidChangeNotification";
+
 @implementation NSTimeZone
 
 + (id)allocWithZone:(NSZone *)zone
