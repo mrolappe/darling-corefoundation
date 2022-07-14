@@ -45,12 +45,12 @@ struct __CFBoolean {
     CFRuntimeBase _base;
 };
 
-static struct __CFBoolean __kCFBooleanTrue = {
+struct __CFBoolean __kCFBooleanTrue = {
     INIT_CFRUNTIME_BASE()
 };
 const CFBooleanRef kCFBooleanTrue = &__kCFBooleanTrue;
 
-static struct __CFBoolean __kCFBooleanFalse = {
+struct __CFBoolean __kCFBooleanFalse = {
     INIT_CFRUNTIME_BASE()
 };
 const CFBooleanRef kCFBooleanFalse = &__kCFBooleanFalse;
